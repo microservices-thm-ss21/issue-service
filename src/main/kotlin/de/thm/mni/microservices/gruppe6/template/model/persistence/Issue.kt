@@ -8,21 +8,23 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
-@Table("users")
+@Table("issues")
 data class Issue(
     @Id var id: UUID? = null,
+    var prjId: UUID,
     var message: String,
-    var userID: UUID? = null,
+    var userId: UUID? = null,
     @JsonFormat(pattern = "dd.MM.yyyy")
     var deadline: LocalDate? = null,
     var createTime: LocalDateTime,
     var globalRole: String,
     var updateTime: LocalDateTime? = null
 ) {
-    constructor(id: UUID, issueDTO: IssueDTO): this(
+    constructor(id: UUID?, prjId: UUID, issueDTO: IssueDTO): this(
          id
+        ,prjId
         ,issueDTO.message!!
-        ,issueDTO.userID
+        ,issueDTO.userId
         ,issueDTO.deadline
         ,LocalDateTime.now()
         ,issueDTO.globalRole!!

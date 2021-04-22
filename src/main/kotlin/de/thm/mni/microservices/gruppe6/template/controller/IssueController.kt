@@ -1,7 +1,7 @@
 package de.thm.mni.microservices.gruppe6.template.controller
 
-import de.thm.mni.microservices.gruppe6.template.model.persistence.Issue
 import de.thm.mni.microservices.gruppe6.template.model.message.IssueDTO
+import de.thm.mni.microservices.gruppe6.template.model.persistence.Issue
 import de.thm.mni.microservices.gruppe6.template.service.IssueDbService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
@@ -20,7 +20,7 @@ class IssueController(@Autowired val issueService: IssueDbService) {
     fun getAllProjectIssues(@PathVariable prjId: UUID): Flux<Issue> = issueService.getAllProjectIssues(prjId)
 
     @GetMapping("/{prjId}/{id}")
-    fun getIssue(@PathVariable prjId: UUID, @PathVariable id: UUID): Flux<Issue> = issueService.getIssue(prjId, id)
+    fun getIssue(@PathVariable prjId: UUID, @PathVariable id: UUID): Mono<Issue> = issueService.getIssue(prjId, id)
 
     @PutMapping("/{prjId}")
     fun putIssue(@PathVariable prjId: UUID, @RequestBody issueDTO: IssueDTO): Mono<Issue> = issueService.putIssue(prjId, issueDTO)

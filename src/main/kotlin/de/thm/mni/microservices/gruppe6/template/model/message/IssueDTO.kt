@@ -9,7 +9,7 @@ import java.util.*
  */
 class IssueDTO {
     var message: String? = null
-    var userID: UUID? = null
+    var userId: UUID? = null
     @JsonFormat(pattern = "dd.MM.yyyy")
     var deadline: LocalDate? = null
     var globalRole: String? = null

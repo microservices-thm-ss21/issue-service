@@ -1,52 +1,42 @@
 package de.thm.mni.microservices.gruppe6.template.service
 
-import de.thm.mni.microservices.gruppe6.template.model.persistence.Issue
 import de.thm.mni.microservices.gruppe6.template.model.message.IssueDTO
+import de.thm.mni.microservices.gruppe6.template.model.persistence.Issue
 import de.thm.mni.microservices.gruppe6.template.model.persistence.IssueRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import java.time.LocalDateTime
 import java.util.*
 
 @Component
 class IssueDbService(@Autowired val issueRepo: IssueRepository) {
 
-    /*
-    issueService.getAllIssues()
+    fun getAllIssues(): Flux<Issue> = issueRepo.findAll()
 
-  issueService.getAllProjectIssues(prjId)
+    fun getAllProjectIssues(prjId: UUID): Flux<Issue> = issueRepo.findAll().filter{ it.prjId == prjId }
 
-   issueService.getIssue(prjId, id)
+    fun getIssue(prjId: UUID, id: UUID): Mono<Issue> = issueRepo.findById(id).filter{ it.prjId == prjId}
 
-   issueService.putIssue(prjId, issueDTO)
-
-     issueService.updateIssue(prjId, id, issueDTO)
-
-     issueService.deleteIssue(prjId, id)
-     */
-
-    fun getAllProjectIssues(): Flux<Issue> = issueRepo.findAll()
-
-    fun putIssue(issueDTO: IssueDTO): Mono<Issue> {
-        return issueRepo.save(Issue(nextId++, issueDTO))
+    fun putIssue(prjId: UUID, issueDTO: IssueDTO): Mono<Issue> {
+        return issueRepo.save(Issue(null, prjId, issueDTO))
     }
 
-    fun updateIssue(id: Long, issueDTO: IssueDTO): Mono<Issue> {
-        val user = issueRepo.findById(id)
-        return user.map { it.applyUserDTO(issueDTO) }
+    fun updateIssue(prjId: UUID, id: UUID, issueDTO: IssueDTO): Mono<Issue> {
+        val user = issueRepo.findById(id).filter{it.prjId == prjId}
+        return user.map { it.applyIssueDTO(issueDTO) }
     }
 
-    fun deleteIssue(id: Long): Mono<Void> {
-        return issueRepo.deleteById(id)
+    fun deleteIssue(prjId: UUID, id: UUID): Mono<Void> {
+        return issueRepo.deleteById(id) // prjID komplett useless
     }
 
-    fun Issue.applyUserDTO(issueDTO: IssueDTO): Issue {
-        this.username = issueDTO.username!!
-        this.lastName = issueDTO.lastName!!
-        this.name = issueDTO.name!!
-        this.dateOfBirth = issueDTO.dateOfBirth!!
+    fun Issue.applyIssueDTO(issueDTO: IssueDTO): Issue {
+        this.message = issueDTO.message!!
+        this.deadline = issueDTO.deadline
+        this.userId = issueDTO.userId
+        this.updateTime = LocalDateTime.now()
         this.globalRole = issueDTO.globalRole!!
         return this
     }
