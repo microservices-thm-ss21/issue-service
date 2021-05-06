@@ -11,23 +11,23 @@ import java.util.*
 @Table("issues")
 data class Issue(
     @Id var id: UUID? = null,
-    var prjId: UUID,
+    var projectId: UUID,
     var message: String,
     var userId: UUID? = null,
     @JsonFormat(pattern = "dd.MM.yyyy")
     var deadline: LocalDate? = null,
-    var createTime: LocalDateTime,
     var globalRole: String,
+    var createTime: LocalDateTime,
     var updateTime: LocalDateTime? = null
 ) {
-    constructor(id: UUID?, prjId: UUID, issueDTO: IssueDTO): this(
+    constructor(id: UUID?, projectId: UUID, issueDTO: IssueDTO): this(
          id
-        ,prjId
+        ,projectId
         ,issueDTO.message!!
         ,issueDTO.userId
         ,issueDTO.deadline
-        ,LocalDateTime.now()
         ,issueDTO.globalRole!!
+        ,LocalDateTime.now()
         ,null
     )
 
