@@ -1,7 +1,7 @@
-package de.thm.mni.microservices.gruppe6.template.service
+package de.thm.mni.microservices.gruppe6.service
 
-import de.thm.mni.microservices.gruppe6.template.model.persistence.User
-import de.thm.mni.microservices.gruppe6.template.model.persistence.UserRepository
+import de.thm.mni.microservices.gruppe6.model.persistence.User
+import de.thm.mni.microservices.gruppe6.model.persistence.UserRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux

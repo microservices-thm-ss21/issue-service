@@ -1,4 +1,4 @@
-package de.thm.mni.microservices.gruppe6.template.model.persistence
+package de.thm.mni.microservices.gruppe6.model.persistence
 
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Table

@@ -1,10 +1,10 @@
-package de.thm.mni.microservices.gruppe6.template
+package de.thm.mni.microservices.gruppe6.service
 
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest
 
 @SpringBootTest
-class ProjectDbServiceTests {
+class IssueDbServiceTests {
 
     @Test
     fun contextLoads() {
