@@ -13,8 +13,8 @@ services:
     networks:
       - database
 
-  user-service:
-    image: user-service
+  issue-service:
+    image: issue-service
     build:
       context: ./
       dockerfile: Dockerfile
@@ -23,7 +23,7 @@ services:
     depends_on:
       - postgres
     volumes:
-      - /data/user-service
+      - /data/issue-service
     networks:
       - database
       - network
