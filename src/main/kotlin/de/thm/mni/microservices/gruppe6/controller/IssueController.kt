@@ -16,18 +16,25 @@ class IssueController(@Autowired val issueService: IssueDbService) {
     @GetMapping("/")
     fun getAllIssues(): Flux<Issue> = issueService.getAllIssues()
 
-    @GetMapping("/{prjId}")
-    fun getAllProjectIssues(@PathVariable prjId: UUID): Flux<Issue> = issueService.getAllProjectIssues(prjId)
+    @GetMapping("/{projectId}")
+    fun getAllProjectIssues(@PathVariable projectId: UUID): Flux<Issue> = issueService.getAllProjectIssues(projectId)
 
-    @GetMapping("/{prjId}/{id}")
-    fun getIssue(@PathVariable prjId: UUID, @PathVariable id: UUID): Mono<Issue> = issueService.getIssue(prjId, id)
+    @GetMapping("/{projectId}/{issueId}")
+    fun getIssue(@PathVariable projectId: UUID, @PathVariable issueId: UUID): Mono<Issue> =
+        issueService.getIssue(projectId, issueId)
 
-    @PutMapping("/{prjId}")
-    fun putIssue(@PathVariable prjId: UUID, @RequestBody issueDTO: IssueDTO): Mono<Issue> = issueService.putIssue(prjId, issueDTO)
+    @PutMapping("/{projectId}")
+    fun putIssue(@PathVariable projectId: UUID, @RequestBody issueDTO: IssueDTO): Mono<Issue> =
+        issueService.putIssue(projectId, issueDTO)
 
-    @PostMapping("/{prjId}/{id}")
-    fun updateIssue(@PathVariable prjId: UUID, @PathVariable id: UUID, @RequestBody issueDTO: IssueDTO) = issueService.updateIssue(prjId, id, issueDTO)
+    @PostMapping("/{projectId}/{issueId}")
+    fun updateIssue(
+        @PathVariable projectId: UUID,
+        @PathVariable issueId: UUID,
+        @RequestBody issueDTO: IssueDTO
+    ): Mono<Issue> = issueService.updateIssue(projectId, issueId, issueDTO)
 
-    @DeleteMapping("/{prjId}/{id}")
-    fun deleteIssue(@PathVariable prjId: UUID, @PathVariable id: UUID) = issueService.deleteIssue(prjId, id)
+    @DeleteMapping("/{projectId}/{issueId}")
+    fun deleteIssue(@PathVariable projectId: UUID, @PathVariable issueId: UUID): Mono<Void> =
+        issueService.deleteIssue(projectId, issueId)
 }
