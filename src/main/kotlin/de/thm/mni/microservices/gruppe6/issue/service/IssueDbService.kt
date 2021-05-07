@@ -1,8 +1,8 @@
-package de.thm.mni.microservices.gruppe6.service
+package de.thm.mni.microservices.gruppe6.issue.service
 
-import de.thm.mni.microservices.gruppe6.model.message.IssueDTO
-import de.thm.mni.microservices.gruppe6.model.persistence.Issue
-import de.thm.mni.microservices.gruppe6.model.persistence.IssueRepository
+import de.thm.mni.microservices.gruppe6.issue.model.message.IssueDTO
+import de.thm.mni.microservices.gruppe6.issue.model.persistence.Issue
+import de.thm.mni.microservices.gruppe6.issue.model.persistence.IssueRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux

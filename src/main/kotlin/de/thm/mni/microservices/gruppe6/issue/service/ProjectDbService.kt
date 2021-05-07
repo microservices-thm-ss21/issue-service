@@ -1,8 +1,8 @@
-package de.thm.mni.microservices.gruppe6.service
+package de.thm.mni.microservices.gruppe6.issue.service
 
-import de.thm.mni.microservices.gruppe6.model.persistence.ProjectRepository
+import de.thm.mni.microservices.gruppe6.issue.model.persistence.ProjectRepository
 import org.springframework.beans.factory.annotation.Autowired
-import de.thm.mni.microservices.gruppe6.model.persistence.Project
+import de.thm.mni.microservices.gruppe6.issue.model.persistence.Project
 import java.util.*
 import reactor.core.publisher.Mono
 import reactor.core.publisher.Flux

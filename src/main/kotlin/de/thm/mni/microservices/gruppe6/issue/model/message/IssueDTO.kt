@@ -1,4 +1,4 @@
-package de.thm.mni.microservices.gruppe6.model.message
+package de.thm.mni.microservices.gruppe6.issue.model.message
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import java.time.LocalDate
