@@ -16,7 +16,7 @@ paths:
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/ArrayOfIssues'
         default:
           description: unexpected error
           content:
@@ -42,7 +42,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
+                $ref: '#/components/schemas/ArrayOfIssues'
         default:
           description: unexpected error
           content:
@@ -67,7 +67,7 @@ paths:
         content:
           application/json:
             schema:
-             $ref: '$ref/components/schemas/IssueDTO'
+             $ref: '#/components/schemas/IssueDTO'
       responses:
         '200':
           description: Issue
@@ -101,13 +101,14 @@ paths:
           schema:
             type: string
             format: uuid
+            example: "a3974d24-5735-410c-b109-ad262755d4d3"
       responses:
         '200':
           description: List of Issues
           content:
             application/json:
               schema:
-                type: array
+                $ref: '#/components/schemas/Issue'
         default:
           description: unexpected error
           content:
@@ -125,6 +126,7 @@ paths:
           schema:
            type: string
            format: uuid
+           example: "54ed2c8e-054d-4fb0-81ac-d7ed726b1879"
         - name: issueId
           in: path
           description: ID of issue
@@ -132,6 +134,7 @@ paths:
           schema:
             type: string
             format: uuid
+            example: "a3974d24-5735-410c-b109-ad262755d4d3"
       requestBody:
         description: issueDTO
         required: true
@@ -145,7 +148,7 @@ paths:
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/Issue'
         default:
           description: unexpected error
           content:
@@ -162,6 +165,7 @@ paths:
           schema:
             type: string
             format: uuid
+            example: "54ed2c8e-054d-4fb0-81ac-d7ed726b1879"
         - name: issueId
           in: path
           description: ID of issue
@@ -169,13 +173,14 @@ paths:
           schema:
             type: string
             format: uuid
+            example: "a3974d24-5735-410c-b109-ad262755d4d3"
       requestBody:
         description: issueDTO
         required: true
         content:
           application/json:
             schema:
-              $ref: '$ref/components/schemas/IssueDTO'
+              $ref: '#/components/schemas/IssueDTO'
       responses:
         '200':
           description: Issue
