@@ -1,17 +1,15 @@
 package de.thm.mni.microservices.gruppe6.issue.service
 
-import de.thm.mni.microservices.gruppe6.model.persistence.Project
-import de.thm.mni.microservices.gruppe6.model.persistence.ProjectRepository
+import de.thm.mni.microservices.gruppe6.issue.model.persistence.Project
+import de.thm.mni.microservices.gruppe6.issue.model.persistence.ProjectRepository
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.junit.jupiter.MockitoExtension
-import java.util.*
-import reactor.test.StepVerifier
-import org.mockito.ArgumentMatchers.any
-import org.mockito.BDDMockito.*
 import reactor.core.publisher.Mono
+import java.util.*
 
 @ExtendWith(MockitoExtension::class)
 class ProjectDbServiceTests(
