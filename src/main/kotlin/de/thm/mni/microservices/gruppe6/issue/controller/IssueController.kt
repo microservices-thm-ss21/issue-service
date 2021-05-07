@@ -11,30 +11,30 @@ import java.util.*
 
 @RestController
 @RequestMapping("/api/issues")
+@CrossOrigin
 class IssueController(@Autowired val issueService: IssueDbService) {
 
-    @GetMapping("/")
+    @GetMapping("")
     fun getAllIssues(): Flux<Issue> = issueService.getAllIssues()
 
-    @GetMapping("/{projectId}")
+    @GetMapping("/project/{projectId}")
     fun getAllProjectIssues(@PathVariable projectId: UUID): Flux<Issue> = issueService.getAllProjectIssues(projectId)
 
-    @GetMapping("/{projectId}/{issueId}")
-    fun getIssue(@PathVariable projectId: UUID, @PathVariable issueId: UUID): Mono<Issue> =
-        issueService.getIssue(projectId, issueId)
+    @GetMapping("/{issueId}")
+    fun getIssue(@PathVariable issueId: UUID): Mono<Issue> =
+        issueService.getIssue(issueId)
 
-    @PutMapping("/{projectId}")
-    fun putIssue(@PathVariable projectId: UUID, @RequestBody issueDTO: IssueDTO): Mono<Issue> =
-        issueService.putIssue(projectId, issueDTO)
+    @PutMapping("")
+    fun putIssue(@RequestBody issueDTO: IssueDTO): Mono<Issue> =
+        issueService.putIssue(issueDTO)
 
-    @PostMapping("/{projectId}/{issueId}")
+    @PostMapping("{issueId}")
     fun updateIssue(
-        @PathVariable projectId: UUID,
         @PathVariable issueId: UUID,
         @RequestBody issueDTO: IssueDTO
-    ): Mono<Issue> = issueService.updateIssue(projectId, issueId, issueDTO)
+    ): Mono<Issue> = issueService.updateIssue(issueId, issueDTO)
 
-    @DeleteMapping("/{projectId}/{issueId}")
-    fun deleteIssue(@PathVariable projectId: UUID, @PathVariable issueId: UUID): Mono<Void> =
-        issueService.deleteIssue(projectId, issueId)
+    @DeleteMapping("/{issueId}")
+    fun deleteIssue(@PathVariable issueId: UUID): Mono<Void> =
+        issueService.deleteIssue(issueId)
 }

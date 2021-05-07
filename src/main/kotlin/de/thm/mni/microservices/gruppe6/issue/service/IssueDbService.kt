@@ -17,8 +17,8 @@ class IssueDbService(@Autowired val issueRepo: IssueRepository) {
 
     fun getAllProjectIssues(projectId: UUID): Flux<Issue> = issueRepo.findAll().filter { it.projectId == projectId }
 
-    fun getIssue(projectId: UUID, issueId: UUID): Mono<Issue> =
-        issueRepo.findById(issueId).filter { it.projectId == projectId } // projectId komplett useless weil issueId unique
+    fun getIssue(issueId: UUID): Mono<Issue> =
+        issueRepo.findById(issueId)
 
     fun putIssue(projectId: UUID, issueDTO: IssueDTO): Mono<Issue> = issueRepo.save(Issue(null, projectId, issueDTO))
 
