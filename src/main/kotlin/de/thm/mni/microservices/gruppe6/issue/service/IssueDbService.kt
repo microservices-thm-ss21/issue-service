@@ -15,18 +15,20 @@ class IssueDbService(@Autowired val issueRepo: IssueRepository) {
 
     fun getAllIssues(): Flux<Issue> = issueRepo.findAll()
 
-    fun getAllProjectIssues(projectId: UUID): Flux<Issue> = issueRepo.findAll().filter{ it.projectId == projectId }
+    fun getAllProjectIssues(projectId: UUID): Flux<Issue> = issueRepo.findAll().filter { it.projectId == projectId }
 
-    fun getIssue(projectId: UUID, id: UUID): Mono<Issue> = issueRepo.findById(id).filter{ it.projectId == projectId}
+    fun getIssue(projectId: UUID, issueId: UUID): Mono<Issue> =
+        issueRepo.findById(issueId).filter { it.projectId == projectId } // projectId komplett useless weil issueId unique
 
     fun putIssue(projectId: UUID, issueDTO: IssueDTO): Mono<Issue> = issueRepo.save(Issue(null, projectId, issueDTO))
 
-    fun updateIssue(projectId: UUID, id: UUID, issueDTO: IssueDTO): Mono<Issue> {
-        val user = issueRepo.findById(id).filter{it.projectId == projectId}
+    fun updateIssue(projectId: UUID, issueId: UUID, issueDTO: IssueDTO): Mono<Issue> {
+        val user = issueRepo.findById(issueId).filter { it.projectId == projectId }
         return user.map { it.applyIssueDTO(issueDTO) }
     }
 
-    fun deleteIssue(projectId: UUID, id: UUID): Mono<Void> = issueRepo.deleteById(id) // projectId komplett useless
+    fun deleteIssue(projectId: UUID, issueId: UUID): Mono<Void> =
+        issueRepo.deleteById(issueId) // projectId komplett useless
 
     fun Issue.applyIssueDTO(issueDTO: IssueDTO): Issue {
         this.message = issueDTO.message!!

@@ -7,12 +7,12 @@ import java.util.*
 import reactor.core.publisher.Mono
 import reactor.core.publisher.Flux
 
-class ProjectDbService(@Autowired val projectRepo: ProjectRepository)  {
+class ProjectDbService(@Autowired val projectRepo: ProjectRepository) {
 
     fun getAllProjects(): Flux<Project> = projectRepo.findAll()
 
     fun putProject(projectId: UUID): Mono<Project> = projectRepo.save(Project(projectId))
-    
+
     fun deleteProject(projectId: UUID): Mono<Void> = projectRepo.deleteById(projectId)
 
     fun hasProject(projectId: UUID): Mono<Boolean> = projectRepo.existsById(projectId)

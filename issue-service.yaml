@@ -1,0 +1,249 @@
+openapi: 3.0.3
+info:
+  title: API Specification for Issue-Service
+  description: API Specification for Issue-Service
+  version: 1.0.0
+servers:
+  - url: 'http://localhost:8080/api/issues'
+paths:
+  /:
+    get:
+      description: |
+        Returns all Issues saved within the issue service
+      responses:
+        '200':
+          description: List of Issues
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArrayOfIssues'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                type: string
+
+  /{projectId}:
+    get:
+      description: Get all Issues of the given project
+      parameters:
+        - name: projectId
+          in: path
+          description: ID of project
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: "54ed2c8e-054d-4fb0-81ac-d7ed726b1879"
+      responses:
+        '200':
+          description: List of Issues
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArrayOfIssues'
+        default:
+          description: unexpected error
+          content:
+           application/json:
+              schema:
+                type: string
+
+    put:
+      description: Get all Issues of the given project
+      parameters:
+        - name: projectId
+          in: path
+          description: ID of project
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: "54ed2c8e-054d-4fb0-81ac-d7ed726b1879"
+      requestBody:
+        description: issueDTO
+        required: true
+        content:
+          application/json:
+            schema:
+             $ref: '#/components/schemas/IssueDTO'
+      responses:
+        '200':
+          description: Issue
+          content:
+            application/json:
+              schema:
+                type: string
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                type: string
+
+  /{projectId}/{issueId}:
+    get:
+      description: Find issue by id
+      parameters:
+        - name: projectId
+          in: path
+          description: ID of project
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: "54ed2c8e-054d-4fb0-81ac-d7ed726b1879"
+        - name: issueId
+          in: path
+          description: ID of issue
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: "a3974d24-5735-410c-b109-ad262755d4d3"
+      responses:
+        '200':
+          description: List of Issues
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Issue'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                type: string
+
+    post:
+      description: Create new Issue
+      parameters:
+        - name: projectId
+          in: path
+          description: ID of project
+          required: true
+          schema:
+           type: string
+           format: uuid
+           example: "54ed2c8e-054d-4fb0-81ac-d7ed726b1879"
+        - name: issueId
+          in: path
+          description: ID of issue
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: "a3974d24-5735-410c-b109-ad262755d4d3"
+      requestBody:
+        description: issueDTO
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IssueDTO'
+      responses:
+        '200':
+          description: Issue
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Issue'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                type: string
+    delete:
+      description: Create new Issue
+      parameters:
+        - name: projectId
+          in: path
+          description: ID of project
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: "54ed2c8e-054d-4fb0-81ac-d7ed726b1879"
+        - name: issueId
+          in: path
+          description: ID of issue
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: "a3974d24-5735-410c-b109-ad262755d4d3"
+      requestBody:
+        description: issueDTO
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IssueDTO'
+      responses:
+        '200':
+          description: Issue
+          content:
+            application/json:
+              schema:
+                type: string
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                type: string
+
+components:
+  schemas:
+    Issue:
+      type: object
+      properties:
+        id:
+          type: string
+        projectId:
+          type: string
+        message:
+          type: string
+        userId:
+          type: string
+        deadline:
+          type: string
+        globalRole:
+          type: string
+        createTime:
+          type: string
+        updateTime:
+          type: string
+
+    ArrayOfIssues:
+      type: array
+      items:
+        $ref: '#/components/schemas/Issue'
+
+    IssueDTO:
+      example:
+        '{"message":"<messsage>",
+          "userId":"a443ffd0-f7a8-44f6-8ad3-87acd1e91042",
+          "deadline: "01.01.2001",
+          "GlobalRole: "admin"}'
+      type: object
+      required:
+        - message
+        - userId
+        - deadline
+        - globalRole
+      properties:
+        message:
+          type: string
+        userId:
+          type: string
+          format: uuid
+        deadline:
+          type: string
+          format: date
+          example: "01.01.2001"
+        globalRole:
+          type: string
+          example: "admin"
