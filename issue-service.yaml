@@ -24,7 +24,30 @@ paths:
               schema:
                 type: string
 
-  /{projectId}:
+    put:
+      description: Creates a new Issue
+      requestBody:
+        description: issueDTO
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IssueDTO'
+      responses:
+        '200':
+          description: Issue
+          content:
+            application/json:
+              schema:
+                type: string
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                type: string
+
+  /project/{projectId}:
     get:
       description: Get all Issues of the given project
       parameters:
@@ -50,50 +73,10 @@ paths:
               schema:
                 type: string
 
-    put:
-      description: Get all Issues of the given project
-      parameters:
-        - name: projectId
-          in: path
-          description: ID of project
-          required: true
-          schema:
-            type: string
-            format: uuid
-            example: "54ed2c8e-054d-4fb0-81ac-d7ed726b1879"
-      requestBody:
-        description: issueDTO
-        required: true
-        content:
-          application/json:
-            schema:
-             $ref: '#/components/schemas/IssueDTO'
-      responses:
-        '200':
-          description: Issue
-          content:
-            application/json:
-              schema:
-                type: string
-        default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                type: string
-
-  /{projectId}/{issueId}:
+  /{issueId}:
     get:
       description: Find issue by id
       parameters:
-        - name: projectId
-          in: path
-          description: ID of project
-          required: true
-          schema:
-            type: string
-            format: uuid
-            example: "54ed2c8e-054d-4fb0-81ac-d7ed726b1879"
         - name: issueId
           in: path
           description: ID of issue
@@ -117,16 +100,8 @@ paths:
                 type: string
 
     post:
-      description: Create new Issue
+      description: Updates existing Issue
       parameters:
-        - name: projectId
-          in: path
-          description: ID of project
-          required: true
-          schema:
-           type: string
-           format: uuid
-           example: "54ed2c8e-054d-4fb0-81ac-d7ed726b1879"
         - name: issueId
           in: path
           description: ID of issue
@@ -156,16 +131,8 @@ paths:
               schema:
                 type: string
     delete:
-      description: Create new Issue
+      description: Deletes existing Issue
       parameters:
-        - name: projectId
-          in: path
-          description: ID of project
-          required: true
-          schema:
-            type: string
-            format: uuid
-            example: "54ed2c8e-054d-4fb0-81ac-d7ed726b1879"
         - name: issueId
           in: path
           description: ID of issue
@@ -225,18 +192,23 @@ components:
     IssueDTO:
       example:
         '{"message":"<messsage>",
+          "projectId": "54ed2c8e-054d-4fb0-81ac-d7ed726b187",
           "userId":"a443ffd0-f7a8-44f6-8ad3-87acd1e91042",
           "deadline: "01.01.2001",
           "GlobalRole: "admin"}'
       type: object
       required:
         - message
+        - projectId
         - userId
         - deadline
         - globalRole
       properties:
         message:
           type: string
+        projectId:
+          type: string
+          format: uuid
         userId:
           type: string
           format: uuid

@@ -13,18 +13,18 @@ data class Issue(
     @Id var id: UUID? = null,
     var projectId: UUID,
     var message: String,
-    var userId: UUID? = null,
+    var assignedUserId: UUID? = null,
     @JsonFormat(pattern = "dd.MM.yyyy")
     var deadline: LocalDate? = null,
     var globalRole: String,
     var createTime: LocalDateTime,
     var updateTime: LocalDateTime? = null
 ) {
-    constructor(id: UUID?, projectId: UUID, issueDTO: IssueDTO): this(
-         id
-        ,projectId
+    constructor(issueDTO: IssueDTO): this(
+         null
+        ,issueDTO.projectId!!
         ,issueDTO.message!!
-        ,issueDTO.userId
+        ,issueDTO.assignedUserId
         ,issueDTO.deadline
         ,issueDTO.globalRole!!
         ,LocalDateTime.now()

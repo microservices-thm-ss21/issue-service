@@ -15,25 +15,26 @@ class IssueDbService(@Autowired val issueRepo: IssueRepository) {
 
     fun getAllIssues(): Flux<Issue> = issueRepo.findAll()
 
-    fun getAllProjectIssues(projectId: UUID): Flux<Issue> = issueRepo.findAll().filter { it.projectId == projectId }
+    fun getAllProjectIssues(projectId: UUID): Flux<Issue> = issueRepo.getIssuesByProjectId(projectId)
 
     fun getIssue(issueId: UUID): Mono<Issue> =
         issueRepo.findById(issueId)
 
-    fun putIssue(projectId: UUID, issueDTO: IssueDTO): Mono<Issue> = issueRepo.save(Issue(null, projectId, issueDTO))
+    fun putIssue(issueDTO: IssueDTO): Mono<Issue> = issueRepo.save(Issue(issueDTO))
 
-    fun updateIssue(projectId: UUID, issueId: UUID, issueDTO: IssueDTO): Mono<Issue> {
-        val user = issueRepo.findById(issueId).filter { it.projectId == projectId }
+    fun updateIssue(issueId: UUID, issueDTO: IssueDTO): Mono<Issue> {
+        val user = issueRepo.findById(issueId)
         return user.map { it.applyIssueDTO(issueDTO) }
     }
 
-    fun deleteIssue(projectId: UUID, issueId: UUID): Mono<Void> =
-        issueRepo.deleteById(issueId) // projectId komplett useless
+    fun deleteIssue(issueId: UUID): Mono<Void> =
+        issueRepo.deleteById(issueId)
 
     fun Issue.applyIssueDTO(issueDTO: IssueDTO): Issue {
+        this.projectId = issueDTO.projectId!!
         this.message = issueDTO.message!!
         this.deadline = issueDTO.deadline
-        this.userId = issueDTO.userId
+        this.assignedUserId = issueDTO.assignedUserId
         this.updateTime = LocalDateTime.now()
         this.globalRole = issueDTO.globalRole!!
         return this

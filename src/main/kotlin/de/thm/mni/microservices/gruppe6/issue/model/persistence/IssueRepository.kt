@@ -1,6 +1,11 @@
 package de.thm.mni.microservices.gruppe6.issue.model.persistence
 
 import org.springframework.data.repository.reactive.ReactiveCrudRepository
+import reactor.core.publisher.Flux
 import java.util.*
 
-interface IssueRepository: ReactiveCrudRepository<Issue, UUID>
+interface IssueRepository: ReactiveCrudRepository<Issue, UUID> {
+
+    fun getIssuesByProjectId(project_id: UUID): Flux<Issue>
+
+}
