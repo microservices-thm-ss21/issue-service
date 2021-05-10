@@ -3,6 +3,7 @@ package de.thm.mni.microservices.gruppe6.issue.service
 import de.thm.mni.microservices.gruppe6.issue.model.message.IssueDTO
 import de.thm.mni.microservices.gruppe6.issue.model.persistence.Issue
 import de.thm.mni.microservices.gruppe6.issue.model.persistence.IssueRepository
+import de.thm.mni.microservices.gruppe6.lib.exception.ServiceException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
@@ -18,7 +19,7 @@ class IssueDbService(@Autowired val issueRepo: IssueRepository) {
     fun getAllProjectIssues(projectId: UUID): Flux<Issue> = issueRepo.getIssuesByProjectId(projectId)
 
     fun getIssue(issueId: UUID): Mono<Issue> =
-        issueRepo.findById(issueId)
+        issueRepo.findById(issueId).switchIfEmpty( Mono.error(ServiceException("Nicht gefunden!")))
 
     fun putIssue(issueDTO: IssueDTO): Mono<Issue> = issueRepo.save(Issue(issueDTO))
 

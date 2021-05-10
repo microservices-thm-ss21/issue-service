@@ -173,16 +173,19 @@ components:
           type: string
         message:
           type: string
-        userId:
+        assignedUserId:
           type: string
+          nullable: true
         deadline:
           type: string
+          nullable: true
         globalRole:
           type: string
         createTime:
           type: string
         updateTime:
           type: string
+          nullable: true
 
     ArrayOfIssues:
       type: array
