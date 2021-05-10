@@ -5,10 +5,13 @@ import de.thm.mni.microservices.gruppe6.issue.model.persistence.ProjectRepositor
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.ArgumentMatchers.any
+import org.mockito.BDDMockito.given
 import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.junit.jupiter.MockitoExtension
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.test.StepVerifier
 import java.util.*
 
 @ExtendWith(MockitoExtension::class)
@@ -37,37 +40,55 @@ class ProjectDbServiceTests(
 
     @Test
     fun testShouldHave(){
+        val id = UUID.randomUUID()
+        given(repository.existsById(id)).willReturn(Mono.just(true))
 
+        StepVerifier
+            .create(service.hasProject(id))
+            .consumeNextWith{
+                    i ->
+                assert(i)
+            }
+            .verifyComplete()
     }
 
     @Test
     fun testShouldCreate() {
-        /*
         val id = UUID.randomUUID()
-        val testIssue = getTestProject(id)
-
+        val testProject = getTestProject(id)
         mockRepositorySave(id)
 
         StepVerifier
-            .create(service.create(testIssue))
-            .consumeNextWith { i ->
-                assert(i.name == testIssue.name)
-                assert(i.description == testIssue.description)
-                assert(i.id != null)
-                Mockito.verify(repository).save(testIssue)
+            .create(service.putProject(id))
+            .consumeNextWith{
+                i ->
+                    assert(i.projectId == testProject.projectId)
+                    Mockito.verify(repository).save(testProject)
             }
             .verifyComplete()
-*/
     }
 
     @Test
     fun testShouldDelete() {
+        val id = UUID.randomUUID()
+        val testProject = getTestProject(id)
 
+        given(repository.findById(id)).willReturn(Mono.just(testProject))
+        given(repository.deleteById(testProject.projectId)).willReturn(Mono.empty())
+        assert(service.deleteProject(id) is Mono<Void>) // Currently always true but when we implement exceptions this test will be necessary
     }
 
     @Test
     fun testShouldGetAll() {
+        val id1 = UUID.randomUUID()
+        val id2 = UUID.randomUUID()
+        val id3 = UUID.randomUUID()
 
+        val projects = listOf<Project>(Project(id1), Project(id2), Project(id3))
+        given(repository.findAll()).willReturn(Flux.fromIterable(projects))
+
+        val result = service.getAllProjects().collectList().block()
+        assert(result == projects)
     }
 
 }
