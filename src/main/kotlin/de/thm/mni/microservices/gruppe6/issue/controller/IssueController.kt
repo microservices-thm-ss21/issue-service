@@ -14,14 +14,14 @@ import java.util.*
 @CrossOrigin
 class IssueController(@Autowired val issueService: IssueDbService) {
 
-    @GetMapping("/")
+    @GetMapping("")
     fun getAllIssues(): Flux<Issue> = issueService.getAllIssues()
 
-    @PutMapping("/")
+    @PutMapping("")
     fun putIssue(@RequestBody issueDTO: IssueDTO): Mono<Issue> =
         issueService.putIssue(issueDTO)
 
-    @GetMapping("/{issueId}")
+    @GetMapping("{issueId}")
     fun getIssue(@PathVariable issueId: UUID): Mono<Issue> =
         issueService.getIssue(issueId)
 
@@ -31,11 +31,11 @@ class IssueController(@Autowired val issueService: IssueDbService) {
         @RequestBody issueDTO: IssueDTO
     ): Mono<Issue> = issueService.updateIssue(issueId, issueDTO)
 
-    @DeleteMapping("/{issueId}")
+    @DeleteMapping("{issueId}")
     fun deleteIssue(@PathVariable issueId: UUID): Mono<Void> =
         issueService.deleteIssue(issueId)
 
-    @GetMapping("/project/{projectId}")
+    @GetMapping("project/{projectId}")
     fun getAllProjectIssues(@PathVariable projectId: UUID): Flux<Issue> = issueService.getAllProjectIssues(projectId)
 
 }

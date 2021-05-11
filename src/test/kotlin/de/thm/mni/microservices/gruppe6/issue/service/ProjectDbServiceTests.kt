@@ -29,7 +29,7 @@ class ProjectDbServiceTests(
     }
 
     private fun mockRepositorySave(id: UUID) {
-        Mockito.`when`(repository.save(any<Project>())).then {
+        Mockito.`when`(repository.save(any())).then {
             val hopefullyProject = it.arguments.first()
             if (hopefullyProject is Project) {
                 hopefullyProject.projectId = id
@@ -84,7 +84,7 @@ class ProjectDbServiceTests(
         val id2 = UUID.randomUUID()
         val id3 = UUID.randomUUID()
 
-        val projects = listOf<Project>(Project(id1), Project(id2), Project(id3))
+        val projects = listOf(Project(id1), Project(id2), Project(id3))
         given(repository.findAll()).willReturn(Flux.fromIterable(projects))
 
         val result = service.getAllProjects().collectList().block()
