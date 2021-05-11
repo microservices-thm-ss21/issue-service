@@ -84,7 +84,7 @@ class UserDbServiceTests(
         val id2 = UUID.randomUUID()
         val id3 = UUID.randomUUID()
 
-        val users = listOf(User(id1), User(id2), User(id3))
+        val users = listOf(getTestUser(id1), getTestUser(id2), getTestUser(id3))
         given(repository.findAll()).willReturn(Flux.fromIterable(users))
 
         val result = service.getAllUsers().collectList().block()

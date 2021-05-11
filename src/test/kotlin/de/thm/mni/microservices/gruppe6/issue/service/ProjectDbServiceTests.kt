@@ -84,7 +84,7 @@ class ProjectDbServiceTests(
         val id2 = UUID.randomUUID()
         val id3 = UUID.randomUUID()
 
-        val projects = listOf(Project(id1), Project(id2), Project(id3))
+        val projects = listOf(getTestProject(id1), getTestProject(id2), getTestProject(id3))
         given(repository.findAll()).willReturn(Flux.fromIterable(projects))
 
         val result = service.getAllProjects().collectList().block()

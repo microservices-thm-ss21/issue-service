@@ -24,8 +24,8 @@ class IssueDbService(@Autowired val issueRepo: IssueRepository) {
     fun putIssue(issueDTO: IssueDTO): Mono<Issue> = issueRepo.save(Issue(issueDTO))
 
     fun updateIssue(issueId: UUID, issueDTO: IssueDTO): Mono<Issue> {
-        val user = issueRepo.findById(issueId)
-        return user.map { it.applyIssueDTO(issueDTO) }
+        val issue = issueRepo.findById(issueId)
+        return issue.flatMap{ issueRepo.save(it.applyIssueDTO(issueDTO)) }
     }
 
     fun deleteIssue(issueId: UUID): Mono<Void> =
