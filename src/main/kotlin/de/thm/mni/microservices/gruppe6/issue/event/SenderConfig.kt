@@ -1,4 +1,4 @@
-package de.thm.mni.microservices.gruppe6.issue.events
+package de.thm.mni.microservices.gruppe6.issue.event
 
 import org.apache.activemq.ActiveMQConnectionFactory
 import org.springframework.context.annotation.Bean
