@@ -1,6 +1,7 @@
 package de.thm.mni.microservices.gruppe6.issue.event
 
 import org.apache.activemq.ActiveMQConnectionFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.jms.annotation.EnableJms
@@ -10,9 +11,8 @@ import org.springframework.jms.config.DefaultJmsListenerContainerFactory
 @Configuration
 @EnableJms
 class ReceiverConfig{
-
-
-    val brokerUrl: String = "tcp://localhost:61616"
+    @Value("\${spring.activemq.broker-url}")
+    private var brokerUrl: String? = null
 
     @Bean
     fun receiverActiveMQConnectionFactory(): ActiveMQConnectionFactory {
@@ -28,7 +28,4 @@ class ReceiverConfig{
         factory.setConnectionFactory(receiverActiveMQConnectionFactory())
         return factory
     }
-
-    @Bean
-    fun receiver(): Receiver = Receiver()
 }

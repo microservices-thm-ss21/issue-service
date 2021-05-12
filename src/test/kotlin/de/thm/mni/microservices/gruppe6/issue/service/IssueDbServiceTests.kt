@@ -1,5 +1,6 @@
 package de.thm.mni.microservices.gruppe6.issue.service
 
+import de.thm.mni.microservices.gruppe6.issue.event.Sender
 import de.thm.mni.microservices.gruppe6.issue.model.message.IssueDTO
 import de.thm.mni.microservices.gruppe6.issue.model.persistence.Issue
 import de.thm.mni.microservices.gruppe6.issue.model.persistence.IssueRepository
@@ -19,10 +20,11 @@ import java.util.*
 
 @ExtendWith(MockitoExtension::class)
 class IssueDbServiceTests(
-    @Mock private val repository: IssueRepository
+    @Mock private val repository: IssueRepository,
+    @Mock private val sender: Sender
 ) {
 
-    private val service = IssueDbService(repository)
+    private val service = IssueDbService(repository, sender)
 
     private fun getTestIssueDTO(
         issue: Issue

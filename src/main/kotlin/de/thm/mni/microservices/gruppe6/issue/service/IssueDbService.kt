@@ -1,8 +1,11 @@
 package de.thm.mni.microservices.gruppe6.issue.service
 
+import de.thm.mni.microservices.gruppe6.issue.event.Sender
 import de.thm.mni.microservices.gruppe6.issue.model.message.IssueDTO
 import de.thm.mni.microservices.gruppe6.issue.model.persistence.Issue
 import de.thm.mni.microservices.gruppe6.issue.model.persistence.IssueRepository
+import de.thm.mni.microservices.gruppe6.lib.event.EventCode
+import de.thm.mni.microservices.gruppe6.lib.event.ServiceEvent
 import de.thm.mni.microservices.gruppe6.lib.exception.ServiceException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -12,7 +15,7 @@ import java.time.LocalDateTime
 import java.util.*
 
 @Component
-class IssueDbService(@Autowired val issueRepo: IssueRepository) {
+class IssueDbService(@Autowired val issueRepo: IssueRepository, @Autowired val sender: Sender) {
 
     fun getAllIssues(): Flux<Issue> = issueRepo.findAll()
 
@@ -21,7 +24,10 @@ class IssueDbService(@Autowired val issueRepo: IssueRepository) {
     fun getIssue(issueId: UUID): Mono<Issue> =
         issueRepo.findById(issueId).switchIfEmpty( Mono.error(ServiceException("Nicht gefunden!")))
 
-    fun putIssue(issueDTO: IssueDTO): Mono<Issue> = issueRepo.save(Issue(issueDTO))
+    fun putIssue(issueDTO: IssueDTO): Mono<Issue> {
+        sender.send(ServiceEvent(EventCode.ISSUE_CREATED, "Message empty"))
+        return issueRepo.save(Issue(issueDTO))
+    }
 
     fun updateIssue(issueId: UUID, issueDTO: IssueDTO): Mono<Issue> {
         val issue = issueRepo.findById(issueId)
