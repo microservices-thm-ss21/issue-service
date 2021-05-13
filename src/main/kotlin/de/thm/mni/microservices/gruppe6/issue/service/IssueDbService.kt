@@ -1,5 +1,6 @@
 package de.thm.mni.microservices.gruppe6.issue.service
 
+import de.thm.mni.microservices.gruppe6.issue.event.Receiver
 import de.thm.mni.microservices.gruppe6.issue.event.Sender
 import de.thm.mni.microservices.gruppe6.issue.model.message.IssueDTO
 import de.thm.mni.microservices.gruppe6.issue.model.persistence.Issue
@@ -21,10 +22,16 @@ class IssueDbService(@Autowired val issueRepo: IssueRepository, @Autowired val s
 
     fun getAllProjectIssues(projectId: UUID): Flux<Issue> = issueRepo.getIssuesByProjectId(projectId)
 
-    fun getIssue(issueId: UUID): Mono<Issue> =
-        issueRepo.findById(issueId).switchIfEmpty(Mono.error(ServiceException("Nicht gefunden!")))
+    fun getIssue(issueId: UUID): Mono<Issue> {
+        sender.send(ServiceEvent(EventCode.ISSUE_CREATED, "test of sender"))
+        return issueRepo.findById(issueId).switchIfEmpty(Mono.error(ServiceException("Nicht gefunden!")))
+    }
 
-    fun putIssue(issueDTO: IssueDTO): Mono<Issue> = issueRepo.save(Issue(issueDTO))
+
+    fun putIssue(issueDTO: IssueDTO): Mono<Issue> {
+        sender.send(ServiceEvent(EventCode.ISSUE_CREATED, "Success"))
+        return issueRepo.save(Issue(issueDTO))
+    }
 
     fun updateIssue(issueId: UUID, issueDTO: IssueDTO): Mono<Issue> {
         val issue = issueRepo.findById(issueId)

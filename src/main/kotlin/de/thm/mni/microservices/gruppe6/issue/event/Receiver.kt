@@ -8,6 +8,8 @@ import org.springframework.stereotype.Component
 class Receiver {
     @JmsListener(destination = "destination", containerFactory = "jmsListenerContainerFactory")
     fun receive(event: ServiceEvent) {
+        print("----------------Message Received----------------")
         print(""+ event.eventCode)
+        print("------------------------------------------------")
     }
 }
