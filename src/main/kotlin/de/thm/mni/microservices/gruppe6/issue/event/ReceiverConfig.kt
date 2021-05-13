@@ -27,7 +27,7 @@ class ReceiverConfig{
     @Bean
     fun jmsListenerContainerFactory(): DefaultJmsListenerContainerFactory {
         val factory = DefaultJmsListenerContainerFactory()
-        factory.setPubSubDomain(true);
+        factory.setPubSubDomain(true)
         factory.setConnectionFactory(receiverActiveMQConnectionFactory())
         factory.setMessageConverter(jacksonJmsMessageConverter())
         return factory

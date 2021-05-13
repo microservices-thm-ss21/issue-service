@@ -24,6 +24,7 @@ class SenderConfig {
     @Bean
     fun jmsTemplate() : JmsTemplate {
         val jmsTemplate = JmsTemplate(senderActiveMQConnectionFactory())
+        jmsTemplate.isPubSubDomain = true
         jmsTemplate.messageConverter = jacksonJmsMessageConverter()
         return jmsTemplate
     }
