@@ -22,16 +22,13 @@ class IssueDbService(@Autowired val issueRepo: IssueRepository, @Autowired val s
     fun getAllProjectIssues(projectId: UUID): Flux<Issue> = issueRepo.getIssuesByProjectId(projectId)
 
     fun getIssue(issueId: UUID): Mono<Issue> =
-        issueRepo.findById(issueId).switchIfEmpty( Mono.error(ServiceException("Nicht gefunden!")))
+        issueRepo.findById(issueId).switchIfEmpty(Mono.error(ServiceException("Nicht gefunden!")))
 
-    fun putIssue(issueDTO: IssueDTO): Mono<Issue> {
-        sender.send(ServiceEvent(EventCode.ISSUE_CREATED, "Message empty"))
-        return issueRepo.save(Issue(issueDTO))
-    }
+    fun putIssue(issueDTO: IssueDTO): Mono<Issue> = issueRepo.save(Issue(issueDTO))
 
     fun updateIssue(issueId: UUID, issueDTO: IssueDTO): Mono<Issue> {
         val issue = issueRepo.findById(issueId)
-        return issue.flatMap{ issueRepo.save(it.applyIssueDTO(issueDTO)) }
+        return issue.flatMap { issueRepo.save(it.applyIssueDTO(issueDTO)) }
     }
 
     fun deleteIssue(issueId: UUID): Mono<Void> =

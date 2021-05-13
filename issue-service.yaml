@@ -196,14 +196,14 @@ components:
       example:
         '{"message":"<messsage>",
           "projectId": "54ed2c8e-054d-4fb0-81ac-d7ed726b187",
-          "userId":"a443ffd0-f7a8-44f6-8ad3-87acd1e91042",
+          "assignedUserId":"a443ffd0-f7a8-44f6-8ad3-87acd1e91042",
           "deadline: "01.01.2001",
-          "GlobalRole: "admin"}'
+          "globalRole: "admin"}'
       type: object
       required:
         - message
         - projectId
-        - userId
+        - assignedUserId
         - deadline
         - globalRole
       properties:
@@ -212,7 +212,7 @@ components:
         projectId:
           type: string
           format: uuid
-        userId:
+        assignedUserId:
           type: string
           format: uuid
         deadline:
