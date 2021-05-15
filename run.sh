@@ -1,1 +1,2 @@
-./gradlew clean build &&  docker-compose build && docker-compose up
+#!/bin/bash
+./gradlew clean build && docker-compose build && docker-compose up
