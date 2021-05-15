@@ -4,26 +4,31 @@ import org.apache.activemq.ActiveMQConnectionFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.jms.annotation.EnableJms
+import org.springframework.jms.config.DefaultJmsListenerContainerFactory
 import org.springframework.jms.core.JmsTemplate
 import org.springframework.jms.support.converter.MappingJackson2MessageConverter
 import org.springframework.jms.support.converter.MessageConverter
 import org.springframework.jms.support.converter.MessageType
 
+
 @Configuration
-class SenderConfig {
-    @Value("\${spring.activemq.broker-url}")
-    private var brokerUrl: String? = null
+@EnableJms
+class BrokerConfig{
 
     @Bean
-    fun senderActiveMQConnectionFactory(): ActiveMQConnectionFactory {
-        val activeMQConnectionFactory = ActiveMQConnectionFactory()
-        activeMQConnectionFactory.brokerURL = brokerUrl;
-        return activeMQConnectionFactory
+    fun jmsListenerContainerFactory(activeMQConnectionFactory: ActiveMQConnectionFactory): DefaultJmsListenerContainerFactory {
+        val factory = DefaultJmsListenerContainerFactory()
+        factory.setPubSubDomain(true)
+        factory.setConnectionFactory(activeMQConnectionFactory)
+        factory.setMessageConverter(jacksonJmsMessageConverter())
+        return factory
     }
 
     @Bean
-    fun jmsTemplate() : JmsTemplate {
-        val jmsTemplate = JmsTemplate(senderActiveMQConnectionFactory())
+    fun jmsTemplate(activeMQConnectionFactory: ActiveMQConnectionFactory): JmsTemplate {
+        val jmsTemplate = JmsTemplate()
+        jmsTemplate.connectionFactory = activeMQConnectionFactory
         jmsTemplate.isPubSubDomain = true
         jmsTemplate.messageConverter = jacksonJmsMessageConverter()
         return jmsTemplate

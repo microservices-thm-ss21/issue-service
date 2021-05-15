@@ -24,6 +24,12 @@ repositories {
 
 extra["springBootAdminVersion"] = "2.3.1"
 
+buildscript {
+    dependencies {
+        classpath("com.avast.gradle:gradle-docker-compose-plugin:0.14.2")
+    }
+}
+
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-activemq")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
@@ -61,4 +67,9 @@ tasks.withType<KotlinCompile> {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+
+task<Exec>("docker-build") {
+    description = "Builds docker"
+    commandLine = listOf("docker-compose build")
 }
