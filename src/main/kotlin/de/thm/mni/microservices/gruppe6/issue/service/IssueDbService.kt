@@ -26,8 +26,9 @@ class IssueDbService(@Autowired val issueRepo: IssueRepository, @Autowired val s
 
 
     fun putIssue(issueDTO: IssueDTO): Mono<Issue> {
-        sender.send(ServiceEvent(EventCode.ISSUE_CREATED, "Success"))
-        return issueRepo.save(Issue(issueDTO))
+        return issueRepo.save(Issue(issueDTO)).map {
+            sender.send(it.id?.let { it1 -> IssueEvent(DataEventCode.CREATED, it1) })
+        }
     }
 
     fun updateIssue(issueId: UUID, issueDTO: IssueDTO): Mono<Issue> {
