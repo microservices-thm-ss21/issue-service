@@ -8,5 +8,5 @@ import org.springframework.stereotype.Component
 
 @Component
 class Sender(@Autowired val jmsTemplate: JmsTemplate) {
-    fun send (event: ServiceEvent) = jmsTemplate.convertAndSend(ActiveMQTopic("destination"),event)
+    fun send (event: ServiceEvent) = jmsTemplate.convertAndSend(ActiveMQTopic("destination"), event)
 }
