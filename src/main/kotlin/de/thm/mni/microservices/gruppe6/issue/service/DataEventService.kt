@@ -18,16 +18,23 @@ class DataEventService(@Autowired val issueDbService: IssueDbService,
     val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
 
-    fun processDataEvent(dataEvent: DataEvent) {
-
-    }
-
-    fun updateDatabase(repository: ReactiveCrudRepository<Any, UUID>, eventCode: DataEventCode, id: UUID) {
-        when(eventCode) {
-            DataEventCode.CREATED -> TODO() // dbService.put(id)
-            DataEventCode.UPDATED -> TODO()
-            DataEventCode.DELETED -> TODO()
+    fun processDataEvent(dataEvent: Mono<DataEvent>) {
+        dataEvent.map {
+            when(it) {
+                is ProjectEvent -> {
+                    projectDbService.receiveUpdate(it)
+                }
+                is UserEvent -> {
+                    userDbService.receiveUpdate(it)
+                }
+                is IssueEvent -> {}
+                else -> error("Unexpected Event type: ${it?.javaClass}")
+            }
         }
+
+        // dataEvent.ofType(ProjectEvent::class.java).publish { projectDbService::receiveUpdate }
+
     }
+
 
 }
