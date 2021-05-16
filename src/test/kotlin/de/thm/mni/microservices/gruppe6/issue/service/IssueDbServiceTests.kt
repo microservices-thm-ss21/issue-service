@@ -1,6 +1,5 @@
 package de.thm.mni.microservices.gruppe6.issue.service
 
-import de.thm.mni.microservices.gruppe6.issue.event.Sender
 import de.thm.mni.microservices.gruppe6.issue.model.message.IssueDTO
 import de.thm.mni.microservices.gruppe6.issue.model.persistence.Issue
 import de.thm.mni.microservices.gruppe6.issue.model.persistence.IssueRepository
@@ -11,20 +10,28 @@ import org.mockito.BDDMockito.given
 import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.junit.jupiter.MockitoExtension
+import org.springframework.context.annotation.Bean
+import org.springframework.jms.core.JmsTemplate
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.test.StepVerifier
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
+import javax.jms.Message
 
 @ExtendWith(MockitoExtension::class)
 class IssueDbServiceTests(
     @Mock private val repository: IssueRepository,
-    @Mock private val sender: Sender
-) {
+    @Mock private val jmsTemplate: JmsTemplate,
 
-    private val service = IssueDbService(repository, sender)
+) {
+    private val service = IssueDbService(repository, jmsTemplate)
+
+    @Bean
+    fun jmsTemplate(): JmsTemplate? {
+        return Mockito.mock(JmsTemplate::class.java)
+    }
 
     private fun getTestIssueDTO(
         issue: Issue
@@ -57,7 +64,7 @@ class IssueDbServiceTests(
     private fun getTestIssue(
         issueDTO: IssueDTO
     ) : Issue {
-       return Issue(issueDTO)
+       return Issue(issueDTO).also { it.id = UUID.randomUUID() }
     }
 
     private fun getTestIssue(
@@ -83,9 +90,11 @@ class IssueDbServiceTests(
     }
 
     private fun mockRepositorySave(issue: Issue) {
-        Mockito.`when`(repository.save(any())).then {
-            Mono.just(issue)
-        }
+        Mockito.`when`(repository.save(any(Issue::class.java))).thenReturn(Mono.just(issue))
+    }
+
+    private fun mockJmsTemplate() {
+        Mockito.`when`(jmsTemplate.convertAndSend(any(Message::class.java))).thenReturn(Unit)
     }
 
     @Test
@@ -111,7 +120,7 @@ class IssueDbServiceTests(
         mockRepositorySave(testIssue)
 
         StepVerifier
-            .create(service.putIssue(testIssueDTO))
+            .create(service.putIssue(Mono.just(testIssueDTO)))
             .consumeNextWith{
                     i ->
                 assert(i == testIssue)
@@ -145,7 +154,7 @@ class IssueDbServiceTests(
         mockRepositorySave(testIssueNew)
 
         StepVerifier
-            .create(service.putIssue(testIssueDTO))
+            .create(service.putIssue(Mono.just(testIssueDTO)))
             .consumeNextWith{
                     i ->
                 run {

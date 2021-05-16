@@ -4,12 +4,13 @@ import de.thm.mni.microservices.gruppe6.issue.model.message.IssueDTO
 import de.thm.mni.microservices.gruppe6.issue.model.persistence.Issue
 import de.thm.mni.microservices.gruppe6.issue.service.IssueDbService
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.util.*
 
-@RestController
+@Controller
 @RequestMapping("/api/issues")
 @CrossOrigin
 class IssueController(@Autowired val issueService: IssueDbService) {
@@ -18,7 +19,7 @@ class IssueController(@Autowired val issueService: IssueDbService) {
     fun getAllIssues(): Flux<Issue> = issueService.getAllIssues()
 
     @PutMapping("")
-    fun putIssue(@RequestBody issueDTO: IssueDTO): Mono<Issue> =
+    fun putIssue(@RequestBody issueDTO: Mono<IssueDTO>): Mono<Issue> =
         issueService.putIssue(issueDTO)
 
     @GetMapping("{issueId}")

@@ -24,12 +24,13 @@ class BrokerConfig{
         return factory
     }
 
-    @Bean
+    @Bean(name = ["sender"])
     fun jmsTemplate(activeMQConnectionFactory: ActiveMQConnectionFactory): JmsTemplate {
         val jmsTemplate = JmsTemplate()
         jmsTemplate.connectionFactory = activeMQConnectionFactory
         jmsTemplate.isPubSubDomain = true
         jmsTemplate.messageConverter = jacksonJmsMessageConverter()
+        jmsTemplate.defaultDestinationName = "microservices.events"
         return jmsTemplate
     }
 

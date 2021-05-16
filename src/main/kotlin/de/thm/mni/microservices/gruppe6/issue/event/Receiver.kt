@@ -6,6 +6,9 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.jms.annotation.JmsListener
 import org.springframework.stereotype.Component
+import reactor.core.publisher.Mono
+import java.lang.Exception
+import javax.jms.Message
 import javax.jms.ObjectMessage
 
 @Component
@@ -13,19 +16,32 @@ class Receiver(private val dataEventService: DataEventService) {
 
     val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
-    @JmsListener(destination = "destination", containerFactory = "jmsListenerContainerFactory")
-    fun receive(message: ObjectMessage) {
-
-        when (message.`object`) {
-            is DataEvent -> dataEventService.processDataEvent(message.`object` as DataEvent)
-            is DomainEvent -> TODO()
+    @JmsListener(destination = "microservices.events", containerFactory = "jmsListenerContainerFactory")
+    fun receive(message: Message) {
+        try {
+            if (message !is ObjectMessage) {
+                logger.info("Received unknown message type {} with id {}", message.jmsType, message.jmsMessageID)
+                return
+            }
+            when (val payload = message.`object`) {
+                is DataEvent -> {
+                    logger.debug("Received DataEvent ObjectMessage with code {} and id {}", payload.code, payload.id)
+                    dataEventService.processDataEvent(Mono.just(payload))
+                }
+                is DomainEvent -> {
+                    logger.debug("Received DomainEvent Object Message with code {}", payload.eventCode)
+                    TODO()
+                }
+                else -> {
+                    logger.info(
+                        "Received unknown ObjectMessage with payload type {} with id {}",
+                        payload.javaClass,
+                        message.jmsMessageID
+                    )
+                }
+            }
+        } catch (e: Exception) {
+            logger.error("", e)
         }
-
-        message.`object`
-        if (message.`object` is IssueEvent)
-
-        logger.debug("----------------Message Received----------------")
-        logger.debug(message.jmsMessageID)
-        logger.debug("------------------------------------------------")
     }
 }

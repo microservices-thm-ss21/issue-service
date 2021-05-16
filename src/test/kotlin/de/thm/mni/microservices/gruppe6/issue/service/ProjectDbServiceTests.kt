@@ -58,6 +58,8 @@ class ProjectDbServiceTests(
         val testProject = getTestProject(id)
         mockRepositorySave(id)
 
+        Mockito.verify(service.receiveUpdate(any()))
+
         StepVerifier
             .create(service.putProject(id))
             .consumeNextWith{

@@ -1,12 +1,12 @@
 package de.thm.mni.microservices.gruppe6.issue.service
 
-import de.thm.mni.microservices.gruppe6.issue.event.Sender
 import de.thm.mni.microservices.gruppe6.issue.model.message.IssueDTO
 import de.thm.mni.microservices.gruppe6.issue.model.persistence.Issue
 import de.thm.mni.microservices.gruppe6.issue.model.persistence.IssueRepository
 import de.thm.mni.microservices.gruppe6.lib.event.*
 import de.thm.mni.microservices.gruppe6.lib.exception.ServiceException
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.jms.core.JmsTemplate
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -15,7 +15,7 @@ import java.time.LocalDateTime
 import java.util.*
 
 @Component
-class IssueDbService(@Autowired val issueRepo: IssueRepository, @Autowired val sender: Sender) {
+class IssueDbService(@Autowired val issueRepo: IssueRepository, @Autowired val sender: JmsTemplate) {
 
     fun getAllIssues(): Flux<Issue> = issueRepo.findAll()
 
@@ -26,9 +26,10 @@ class IssueDbService(@Autowired val issueRepo: IssueRepository, @Autowired val s
     }
 
 
-    fun putIssue(issueDTO: IssueDTO): Mono<Issue> {
-        return issueRepo.save(Issue(issueDTO)).publishOn(Schedulers.boundedElastic()).map {
-            sender.send(IssueEvent(DataEventCode.CREATED, it.id!!))
+    fun putIssue(issueDTO: Mono<IssueDTO>): Mono<Issue> {
+        return issueDTO.map { Issue(it) }.flatMap { issueRepo.save(it) }
+            .publishOn(Schedulers.boundedElastic()).map {
+                sender.convertAndSend(IssueEvent(DataEventCode.CREATED, it.id!!))
             it
         }
     }
@@ -38,8 +39,7 @@ class IssueDbService(@Autowired val issueRepo: IssueRepository, @Autowired val s
         return issue.flatMap { issueRepo.save(it.applyIssueDTO(issueDTO)) }
     }
 
-    fun deleteIssue(issueId: UUID): Mono<Void> =
-        issueRepo.deleteById(issueId)
+    fun deleteIssue(issueId: UUID): Mono<Void> = issueRepo.deleteById(issueId)
 
     fun Issue.applyIssueDTO(issueDTO: IssueDTO): Issue {
         this.projectId = issueDTO.projectId!!
