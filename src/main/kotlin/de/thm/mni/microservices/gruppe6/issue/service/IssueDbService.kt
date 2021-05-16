@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.core.scheduler.Schedulers
 import java.time.LocalDateTime
 import java.util.*
 
@@ -26,7 +27,7 @@ class IssueDbService(@Autowired val issueRepo: IssueRepository, @Autowired val s
 
 
     fun putIssue(issueDTO: IssueDTO): Mono<Issue> {
-        return issueRepo.save(Issue(issueDTO)).map {
+        return issueRepo.save(Issue(issueDTO)).publishOn(Schedulers.boundedElastic()).map {
             sender.send(IssueEvent(DataEventCode.CREATED, it.id!!))
             it
         }
