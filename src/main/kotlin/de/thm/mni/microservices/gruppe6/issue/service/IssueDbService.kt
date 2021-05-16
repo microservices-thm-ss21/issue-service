@@ -39,7 +39,13 @@ class IssueDbService(@Autowired val issueRepo: IssueRepository, @Autowired val s
         return issue.flatMap { issueRepo.save(it.applyIssueDTO(issueDTO)) }
     }
 
-    fun deleteIssue(issueId: UUID): Mono<Void> = issueRepo.deleteById(issueId)
+    fun deleteIssue(issueId: UUID): Mono<Void> {
+        return issueRepo.deleteById(issueId)
+            .publishOn(Schedulers.boundedElastic()).map {
+                sender.convertAndSend(IssueEvent(DataEventCode.DELETED, issueId))
+                it
+            }
+    }
 
     fun Issue.applyIssueDTO(issueDTO: IssueDTO): Issue {
         this.projectId = issueDTO.projectId!!

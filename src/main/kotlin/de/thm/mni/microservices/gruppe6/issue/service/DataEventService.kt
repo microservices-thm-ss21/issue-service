@@ -31,6 +31,7 @@ class DataEventService(@Autowired val issueDbService: IssueDbService,
                 else -> error("Unexpected Event type: ${it?.javaClass}")
             }
         }
+        TODO("Verarbeitung der Errors bzw des Rückgabewertes")
 
         // dataEvent.ofType(ProjectEvent::class.java).publish { projectDbService::receiveUpdate }
 
