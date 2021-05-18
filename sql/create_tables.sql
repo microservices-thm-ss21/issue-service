@@ -15,7 +15,6 @@ create table issues (
     message varchar(100) NOT NULL,
     assigned_user_id uuid NULL,
     deadline date NULL,
-    global_role varchar(20) NOT NULL, -- Warum Global Role?
     create_time timestamp NOT NULL ,
     update_time timestamp NULL,
     CONSTRAINT fk_project
@@ -31,4 +30,4 @@ insert into projects values ('54ed2c8e-054d-4fb0-81ac-d7ed726b1879');
 insert into users values ('a443ffd0-f7a8-44f6-8ad3-87acd1e91042');
 
 insert into issues values ('a3974d24-5735-410c-b109-ad262755d4d3','54ed2c8e-054d-4fb0-81ac-d7ed726b1879', 'xXRausAusDenSchulden69Xx', 'a443ffd0-f7a8-44f6-8ad3-87acd1e91042',
-                           null, 'SCHULDENBERATER', current_date,  null)
+                           null, current_date,  null)

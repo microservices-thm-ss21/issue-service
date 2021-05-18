@@ -60,7 +60,6 @@ class IssueDbService(@Autowired val issueRepo: IssueRepository, @Autowired val s
         this.deadline = issueDTO.deadline
         this.assignedUserId = issueDTO.assignedUserId
         this.updateTime = LocalDateTime.now()
-        this.globalRole = issueDTO.globalRole!!
         return this
     }
 

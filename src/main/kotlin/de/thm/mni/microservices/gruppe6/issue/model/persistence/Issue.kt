@@ -16,7 +16,6 @@ data class Issue(
     var assignedUserId: UUID? = null,
     @JsonFormat(pattern = "dd.MM.yyyy")
     var deadline: LocalDate? = null,
-    var globalRole: String,
     var createTime: LocalDateTime,
     var updateTime: LocalDateTime? = null
 ) {
@@ -26,7 +25,6 @@ data class Issue(
         ,issueDTO.message!!
         ,issueDTO.assignedUserId
         ,issueDTO.deadline
-        ,issueDTO.globalRole!!
         ,LocalDateTime.now()
         ,null
     )
