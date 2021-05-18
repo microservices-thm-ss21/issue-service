@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
+import java.lang.IllegalArgumentException
 import java.time.LocalDateTime
 import java.util.*
 
@@ -35,8 +36,12 @@ class IssueDbService(@Autowired val issueRepo: IssueRepository, @Autowired val s
     }
 
     fun updateIssue(issueId: UUID, issueDTO: IssueDTO): Mono<Issue> {
-        val issue = issueRepo.findById(issueId)
-        return issue.flatMap { issueRepo.save(it.applyIssueDTO(issueDTO)) }
+        return issueRepo.findById(issueId)
+            .flatMap { issueRepo.save(it.applyIssueDTO(issueDTO)) }
+            .publishOn(Schedulers.boundedElastic()).map {
+                sender.convertAndSend(IssueEvent(DataEventCode.UPDATED, issueId))
+                it
+            }
     }
 
     fun deleteIssue(issueId: UUID): Mono<Void> {
@@ -48,7 +53,9 @@ class IssueDbService(@Autowired val issueRepo: IssueRepository, @Autowired val s
     }
 
     fun Issue.applyIssueDTO(issueDTO: IssueDTO): Issue {
-        this.projectId = issueDTO.projectId!!
+        if(this.projectId != issueDTO.projectId)
+            throw IllegalArgumentException("You may not update the project ID of an existing Issue")
+
         this.message = issueDTO.message!!
         this.deadline = issueDTO.deadline
         this.assignedUserId = issueDTO.assignedUserId

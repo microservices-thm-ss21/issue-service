@@ -1,13 +1,13 @@
 package de.thm.mni.microservices.gruppe6.issue.event
 
 import de.thm.mni.microservices.gruppe6.issue.service.DataEventService
-import de.thm.mni.microservices.gruppe6.lib.event.*
+import de.thm.mni.microservices.gruppe6.lib.event.DataEvent
+import de.thm.mni.microservices.gruppe6.lib.event.DomainEvent
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.jms.annotation.JmsListener
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
-import java.lang.Exception
 import javax.jms.Message
 import javax.jms.ObjectMessage
 
@@ -20,7 +20,7 @@ class Receiver(private val dataEventService: DataEventService) {
     fun receive(message: Message) {
         try {
             if (message !is ObjectMessage) {
-                logger.info("Received unknown message type {} with id {}", message.jmsType, message.jmsMessageID)
+                logger.error("Received unknown message type {} with id {}", message.jmsType, message.jmsMessageID)
                 return
             }
             when (val payload = message.`object`) {
@@ -33,7 +33,7 @@ class Receiver(private val dataEventService: DataEventService) {
                     TODO()
                 }
                 else -> {
-                    logger.info(
+                    logger.error(
                         "Received unknown ObjectMessage with payload type {} with id {}",
                         payload.javaClass,
                         message.jmsMessageID
@@ -41,7 +41,7 @@ class Receiver(private val dataEventService: DataEventService) {
                 }
             }
         } catch (e: Exception) {
-            logger.error("", e)
+            logger.error("Receiver-Error", e)
         }
     }
 }
