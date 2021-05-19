@@ -25,7 +25,7 @@ class IssueDbServiceTests(
     @Mock private val repository: IssueRepository,
     @Mock private val jmsTemplate: JmsTemplate,
 
-) {
+    ) {
     private val service = IssueDbService(repository, jmsTemplate)
 
     @Bean
@@ -35,13 +35,12 @@ class IssueDbServiceTests(
 
     private fun getTestIssueDTO(
         issue: Issue
-    ) : IssueDTO {
+    ): IssueDTO {
         val issueDTO = IssueDTO()
         issueDTO.message = issue.message
         issueDTO.assignedUserId = issue.assignedUserId
         issueDTO.projectId = issue.projectId
         issueDTO.deadline = issue.deadline
-        issueDTO.globalRole = issue.globalRole
         return issueDTO
     }
 
@@ -51,7 +50,7 @@ class IssueDbServiceTests(
         assignedUserId: UUID? = UUID.fromString("a443ffd0-f7a8-44f6-8ad3-87acd1e91042"),
         deadline: LocalDate? = null,
         globalRole: String = "SCHULDENBERATER"
-    ) : IssueDTO {
+    ): IssueDTO {
         val issueDTO = IssueDTO()
         issueDTO.message = message
         issueDTO.assignedUserId = assignedUserId
@@ -63,8 +62,8 @@ class IssueDbServiceTests(
 
     private fun getTestIssue(
         issueDTO: IssueDTO
-    ) : Issue {
-       return Issue(issueDTO).also { it.id = UUID.randomUUID() }
+    ): Issue {
+        return Issue(issueDTO).also { it.id = UUID.randomUUID() }
     }
 
     private fun getTestIssue(
@@ -73,17 +72,15 @@ class IssueDbServiceTests(
         message: String = "xXRausAusDenSchulden69Xx",
         assignedUserId: UUID? = UUID.fromString("a443ffd0-f7a8-44f6-8ad3-87acd1e91042"),
         deadline: LocalDate? = null,
-        globalRole: String = "SCHULDENBERATER",
         createTime: LocalDateTime = LocalDateTime.now(),
         updateTime: LocalDateTime? = null
-    ) : Issue {
+    ): Issue {
         return Issue(
             id,
             projectId,
             message,
             assignedUserId,
             deadline,
-            globalRole,
             createTime,
             updateTime
         )
@@ -98,15 +95,14 @@ class IssueDbServiceTests(
     }
 
     @Test
-    fun testShouldGetByID(){
+    fun testShouldGetByID() {
         val id = UUID.randomUUID()
         val testIssue = getTestIssue(id)
         given(repository.findById(id)).willReturn(Mono.just(testIssue))
 
         StepVerifier
             .create(service.getIssue(id))
-            .consumeNextWith{
-                    i ->
+            .consumeNextWith { i ->
                 assert(i.equals(testIssue))
             }
             .verifyComplete()
@@ -121,8 +117,7 @@ class IssueDbServiceTests(
 
         StepVerifier
             .create(service.putIssue(Mono.just(testIssueDTO)))
-            .consumeNextWith{
-                    i ->
+            .consumeNextWith { i ->
                 assert(i == testIssue)
                 Mockito.verify(repository).save(any())
             }
@@ -155,8 +150,7 @@ class IssueDbServiceTests(
 
         StepVerifier
             .create(service.putIssue(Mono.just(testIssueDTO)))
-            .consumeNextWith{
-                    i ->
+            .consumeNextWith { i ->
                 run {
                     assert(i == testIssueNew)
                     assert(i != testIssueOld)
@@ -168,10 +162,11 @@ class IssueDbServiceTests(
     }
 
     @Test
-    fun testShouldGetAllProjectIssues(){
+    fun testShouldGetAllProjectIssues() {
         val prjId = UUID.randomUUID()
 
-        val issues = listOf(getTestIssue(projectId = prjId), getTestIssue(projectId = prjId), getTestIssue(projectId = prjId))
+        val issues =
+            listOf(getTestIssue(projectId = prjId), getTestIssue(projectId = prjId), getTestIssue(projectId = prjId))
         given(repository.getIssuesByProjectId(prjId)).willReturn(Flux.fromIterable(issues))
 
         val result = service.getAllProjectIssues(prjId).collectList().block()
