@@ -20,11 +20,7 @@ class BrokerConfig{
     fun jmsListenerContainerFactory(activeMQConnectionFactory: ActiveMQConnectionFactory): DefaultJmsListenerContainerFactory {
         val factory = DefaultJmsListenerContainerFactory()
         factory.setPubSubDomain(true)
-        /*activeMQConnectionFactory.trustedPackages.addAll(
-            setOf(
-            "de.thm.mni.microservices.gruppe6.lib.event.IssueDataEvent",
-            "de.thm.mni.microservices.gruppe6.lib.event.*"
-            ))*/
+        activeMQConnectionFactory.trustedPackages = listOf("de.thm.mni.microservices.gruppe6.lib.event", "java.util")
         factory.setConnectionFactory(activeMQConnectionFactory)
         factory.setMessageConverter(jacksonJmsMessageConverter())
         return factory
