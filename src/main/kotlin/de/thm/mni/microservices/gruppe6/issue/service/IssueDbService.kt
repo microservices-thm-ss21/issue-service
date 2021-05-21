@@ -11,9 +11,11 @@ import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
+import reactor.util.function.Tuple2
 import java.lang.IllegalArgumentException
 import java.time.LocalDateTime
 import java.util.*
+import kotlin.collections.ArrayList
 
 @Component
 class IssueDbService(@Autowired val issueRepo: IssueRepository, @Autowired val sender: JmsTemplate) {
@@ -27,40 +29,55 @@ class IssueDbService(@Autowired val issueRepo: IssueRepository, @Autowired val s
     }
 
 
-    fun putIssue(issueDTO: Mono<IssueDTO>): Mono<Issue> {
-        return issueDTO.map { Issue(it) }.flatMap { issueRepo.save(it) }
+    fun putIssue(issueDTO: IssueDTO): Mono<Issue> {
+        return Mono.just(issueDTO).map { Issue(it) }.flatMap { issueRepo.save(it) }
             .publishOn(Schedulers.boundedElastic()).map {
-                sender.convertAndSend(IssueEvent(DataEventCode.CREATED, it.id!!))
+                sender.convertAndSend(IssueDataEvent(DataEventCode.CREATED, it.id!!))
             it
         }
     }
 
     fun updateIssue(issueId: UUID, issueDTO: IssueDTO): Mono<Issue> {
         return issueRepo.findById(issueId)
-            .flatMap { issueRepo.save(it.applyIssueDTO(issueDTO)) }
+            .map { it.applyIssueDTO(issueDTO) }
+            .map { issueRepo.save(it.first)
+            it
+            }
             .publishOn(Schedulers.boundedElastic()).map {
-                sender.convertAndSend(IssueEvent(DataEventCode.UPDATED, issueId))
-                it
+                sender.convertAndSend(IssueDataEvent(DataEventCode.UPDATED, issueId))
+                it.second.forEach(sender::convertAndSend)
+                it.first
             }
     }
 
     fun deleteIssue(issueId: UUID): Mono<Void> {
         return issueRepo.deleteById(issueId)
             .publishOn(Schedulers.boundedElastic()).map {
-                sender.convertAndSend(IssueEvent(DataEventCode.DELETED, issueId))
+                sender.convertAndSend(IssueDataEvent(DataEventCode.DELETED, issueId))
                 it
             }
     }
 
-    fun Issue.applyIssueDTO(issueDTO: IssueDTO): Issue {
+    fun Issue.applyIssueDTO(issueDTO: IssueDTO): Pair<Issue, List<DomainEvent>> {
+        val eventList = ArrayList<DomainEvent>()
+
         if(this.projectId != issueDTO.projectId)
             throw IllegalArgumentException("You may not update the project ID of an existing Issue")
+        if(this.message != issueDTO.message!!){
+            eventList.add(IssueDomainEvent(DomainEventCode.ISSUE_CHANGED_MESSAGE))
+            this.message = issueDTO.message!!
+        }
 
-        this.message = issueDTO.message!!
-        this.deadline = issueDTO.deadline
-        this.assignedUserId = issueDTO.assignedUserId
+        if(this.deadline != issueDTO.deadline){
+            eventList.add(IssueDomainEvent(DomainEventCode.ISSUE_CHANGED_DEADLINE))
+            this.deadline = issueDTO.deadline
+        }
+        if(this.assignedUserId != issueDTO.assignedUserId){
+            eventList.add(IssueDomainEvent(DomainEventCode.ISSUE_ASSIGNED_USER))
+            this.assignedUserId = issueDTO.assignedUserId
+        }
         this.updateTime = LocalDateTime.now()
-        return this
+        return Pair(this, eventList)
     }
 
 }

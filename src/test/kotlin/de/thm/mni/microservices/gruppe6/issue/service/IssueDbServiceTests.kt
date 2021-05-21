@@ -56,7 +56,6 @@ class IssueDbServiceTests(
         issueDTO.assignedUserId = assignedUserId
         issueDTO.projectId = projectId
         issueDTO.deadline = deadline
-        issueDTO.globalRole = globalRole
         return issueDTO
     }
 
@@ -116,7 +115,7 @@ class IssueDbServiceTests(
         mockRepositorySave(testIssue)
 
         StepVerifier
-            .create(service.putIssue(Mono.just(testIssueDTO)))
+            .create(service.putIssue(testIssueDTO))
             .consumeNextWith { i ->
                 assert(i == testIssue)
                 Mockito.verify(repository).save(any())
@@ -149,7 +148,7 @@ class IssueDbServiceTests(
         mockRepositorySave(testIssueNew)
 
         StepVerifier
-            .create(service.putIssue(Mono.just(testIssueDTO)))
+            .create(service.putIssue(testIssueDTO))
             .consumeNextWith { i ->
                 run {
                     assert(i == testIssueNew)

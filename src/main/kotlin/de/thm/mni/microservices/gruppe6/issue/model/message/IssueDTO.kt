@@ -7,11 +7,10 @@ import java.util.*
 /**
  * DTO = Data Transport Object
  */
-class IssueDTO {
-    var message: String? = null
-    var assignedUserId: UUID? = null
-    var projectId: UUID? = null
+data class IssueDTO (
+    var message: String? = null,
+    var assignedUserId: UUID? = null,
+    var projectId: UUID? = null,
     @JsonFormat(pattern = "dd.MM.yyyy")
     var deadline: LocalDate? = null
-    var globalRole: String? = null
-}
+)

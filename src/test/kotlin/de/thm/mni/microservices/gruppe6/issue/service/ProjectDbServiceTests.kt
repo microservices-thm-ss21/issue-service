@@ -2,7 +2,7 @@ package de.thm.mni.microservices.gruppe6.issue.service
 
 import de.thm.mni.microservices.gruppe6.issue.model.persistence.Project
 import de.thm.mni.microservices.gruppe6.issue.model.persistence.ProjectRepository
-import de.thm.mni.microservices.gruppe6.lib.event.DataEventCode.*
+import de.thm.mni.microservices.gruppe6.lib.event.DataEvent.*
 import de.thm.mni.microservices.gruppe6.lib.event.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -30,8 +30,8 @@ class ProjectDbServiceTests(
         )
     }
 
-    private fun getTestEvent(id: UUID, code: DataEventCode): ProjectEvent {
-        return ProjectEvent(code,id)
+    private fun getTestEvent(id: UUID, code: DataEventCode): ProjectDataEvent {
+        return ProjectDataEvent(code,id)
     }
 
     private fun mockRepositorySave(id: UUID) {

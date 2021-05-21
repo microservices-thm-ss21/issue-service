@@ -4,7 +4,7 @@ import de.thm.mni.microservices.gruppe6.issue.model.persistence.ProjectRepositor
 import org.springframework.beans.factory.annotation.Autowired
 import de.thm.mni.microservices.gruppe6.issue.model.persistence.Project
 
-import de.thm.mni.microservices.gruppe6.lib.event.ProjectEvent
+import de.thm.mni.microservices.gruppe6.lib.event.ProjectDataEvent
 import de.thm.mni.microservices.gruppe6.lib.event.DataEventCode.*
 import org.springframework.stereotype.Component
 import java.util.*
@@ -18,13 +18,12 @@ class ProjectDbService(@Autowired val projectRepo: ProjectRepository) {
 
     fun hasProject(projectId: UUID): Mono<Boolean> = projectRepo.existsById(projectId)
 
-    fun receiveUpdate(projectEvent: ProjectEvent) {
-        when (projectEvent.code){
-            CREATED -> projectRepo.save(Project(projectEvent.id))
-            DELETED -> projectRepo.deleteById(projectEvent.id)
+    fun receiveUpdate(projectDataEvent: ProjectDataEvent) {
+        when (projectDataEvent.code){
+            CREATED -> projectRepo.save(Project(projectDataEvent.id))
+            DELETED -> projectRepo.deleteById(projectDataEvent.id)
             UPDATED -> {}
-            else -> throw IllegalArgumentException("Unexpected code for projectEvent: ${projectEvent.code}")
-
+            else -> throw IllegalArgumentException("Unexpected code for projectEvent: ${projectDataEvent.code}")
         }
     }
 }

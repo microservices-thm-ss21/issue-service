@@ -19,7 +19,7 @@ class IssueController(@Autowired val issueService: IssueDbService) {
     fun getAllIssues(): Flux<Issue> = issueService.getAllIssues()
 
     @PutMapping("")
-    fun putIssue(@RequestBody issueDTO: Mono<IssueDTO>): Mono<Issue> =
+    fun putIssue(@RequestBody issueDTO: IssueDTO): Mono<Issue> =
         issueService.putIssue(issueDTO)
 
     @GetMapping("{issueId}")
