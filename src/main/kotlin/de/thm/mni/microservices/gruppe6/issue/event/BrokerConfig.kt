@@ -20,6 +20,11 @@ class BrokerConfig{
     fun jmsListenerContainerFactory(activeMQConnectionFactory: ActiveMQConnectionFactory): DefaultJmsListenerContainerFactory {
         val factory = DefaultJmsListenerContainerFactory()
         factory.setPubSubDomain(true)
+        /*activeMQConnectionFactory.trustedPackages.addAll(
+            setOf(
+            "de.thm.mni.microservices.gruppe6.lib.event.IssueDataEvent",
+            "de.thm.mni.microservices.gruppe6.lib.event.*"
+            ))*/
         factory.setConnectionFactory(activeMQConnectionFactory)
         factory.setMessageConverter(jacksonJmsMessageConverter())
         return factory
@@ -30,7 +35,7 @@ class BrokerConfig{
         val jmsTemplate = JmsTemplate()
         jmsTemplate.connectionFactory = activeMQConnectionFactory
         jmsTemplate.isPubSubDomain = true
-        jmsTemplate.messageConverter = jacksonJmsMessageConverter()
+        //jmsTemplate.messageConverter = jacksonJmsMessageConverter()
         jmsTemplate.defaultDestinationName = "microservices.events"
         return jmsTemplate
     }

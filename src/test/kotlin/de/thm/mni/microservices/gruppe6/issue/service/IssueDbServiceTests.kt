@@ -49,7 +49,6 @@ class IssueDbServiceTests(
         message: String = "xXRausAusDenSchulden69Xx",
         assignedUserId: UUID? = UUID.fromString("a443ffd0-f7a8-44f6-8ad3-87acd1e91042"),
         deadline: LocalDate? = null,
-        globalRole: String = "SCHULDENBERATER"
     ): IssueDTO {
         val issueDTO = IssueDTO()
         issueDTO.message = message
