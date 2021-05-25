@@ -24,7 +24,7 @@ paths:
               schema:
                 type: string
 
-    put:
+    post:
       description: Creates a new Issue
       requestBody:
         description: issueDTO
@@ -34,12 +34,14 @@ paths:
             schema:
               $ref: '#/components/schemas/IssueDTO'
       responses:
-        '200':
+        '201':
           description: Issue
           content:
             application/json:
               schema:
                 type: string
+        '409':
+          description: Issue could not be created
         default:
           description: unexpected error
           content:
@@ -92,6 +94,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Issue'
+        '404':
+          description: Issue not found
         default:
           description: unexpected error
           content:
@@ -99,7 +103,7 @@ paths:
               schema:
                 type: string
 
-    post:
+    put:
       description: Updates existing Issue
       parameters:
         - name: issueId
@@ -124,6 +128,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Issue'
+        '409':
+          description: Issue could not be updated
         default:
           description: unexpected error
           content:
@@ -149,7 +155,7 @@ paths:
             schema:
               $ref: '#/components/schemas/IssueDTO'
       responses:
-        '200':
+        '204':
           description: Issue
           content:
             application/json:
