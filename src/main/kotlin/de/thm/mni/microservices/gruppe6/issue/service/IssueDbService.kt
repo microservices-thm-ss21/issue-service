@@ -64,16 +64,15 @@ class IssueDbService(@Autowired val issueRepo: IssueRepository, @Autowired val s
         if(this.projectId != issueDTO.projectId)
             throw IllegalArgumentException("You may not update the project ID of an existing Issue")
         if(this.message != issueDTO.message!!){
-            //eventList.add(IssueDomainEvent(DomainEventCode.ISSUE_CHANGED_MESSAGE))
+            eventList.add(IssueDomainEvent(DomainEventCode.ISSUE_CHANGED_MESSAGE))
             this.message = issueDTO.message!!
         }
-
         if(this.deadline != issueDTO.deadline){
-            //eventList.add(IssueDomainEvent(DomainEventCode.ISSUE_CHANGED_DEADLINE))
+            eventList.add(IssueDomainEvent(DomainEventCode.ISSUE_CHANGED_DEADLINE))
             this.deadline = issueDTO.deadline
         }
         if(this.assignedUserId != issueDTO.assignedUserId){
-            //eventList.add(IssueDomainEvent(DomainEventCode.ISSUE_ASSIGNED_USER))
+            eventList.add(IssueDomainEvent(DomainEventCode.ISSUE_ASSIGNED_USER))
             this.assignedUserId = issueDTO.assignedUserId
         }
         this.updateTime = LocalDateTime.now()

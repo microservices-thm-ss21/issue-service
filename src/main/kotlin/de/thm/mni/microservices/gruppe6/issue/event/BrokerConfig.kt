@@ -31,7 +31,6 @@ class BrokerConfig{
         val jmsTemplate = JmsTemplate()
         jmsTemplate.connectionFactory = activeMQConnectionFactory
         jmsTemplate.isPubSubDomain = true
-        //jmsTemplate.messageConverter = jacksonJmsMessageConverter()
         jmsTemplate.defaultDestinationName = "microservices.events"
         return jmsTemplate
     }
