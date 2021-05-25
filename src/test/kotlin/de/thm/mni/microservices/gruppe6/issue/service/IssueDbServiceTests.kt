@@ -114,7 +114,7 @@ class IssueDbServiceTests(
         mockRepositorySave(testIssue)
 
         StepVerifier
-            .create(service.putIssue(testIssueDTO))
+            .create(service.createIssue(testIssueDTO))
             .consumeNextWith { i ->
                 assert(i == testIssue)
                 Mockito.verify(repository).save(any())
@@ -147,7 +147,7 @@ class IssueDbServiceTests(
         mockRepositorySave(testIssueNew)
 
         StepVerifier
-            .create(service.putIssue(testIssueDTO))
+            .create(service.createIssue(testIssueDTO))
             .consumeNextWith { i ->
                 run {
                     assert(i == testIssueNew)

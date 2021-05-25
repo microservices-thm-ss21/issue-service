@@ -4,14 +4,12 @@ import de.thm.mni.microservices.gruppe6.issue.model.message.IssueDTO
 import de.thm.mni.microservices.gruppe6.issue.model.persistence.Issue
 import de.thm.mni.microservices.gruppe6.issue.model.persistence.IssueRepository
 import de.thm.mni.microservices.gruppe6.lib.event.*
-import de.thm.mni.microservices.gruppe6.lib.exception.ServiceException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.jms.core.JmsTemplate
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
-import reactor.util.function.Tuple2
 import java.lang.IllegalArgumentException
 import java.time.LocalDateTime
 import java.util.*
@@ -25,11 +23,11 @@ class IssueDbService(@Autowired val issueRepo: IssueRepository, @Autowired val s
     fun getAllProjectIssues(projectId: UUID): Flux<Issue> = issueRepo.getIssuesByProjectId(projectId)
 
     fun getIssue(issueId: UUID): Mono<Issue> {
-        return issueRepo.findById(issueId).switchIfEmpty(Mono.error(ServiceException("Nicht gefunden!")))
+        return issueRepo.findById(issueId)
     }
 
 
-    fun putIssue(issueDTO: IssueDTO): Mono<Issue> {
+    fun createIssue(issueDTO: IssueDTO): Mono<Issue> {
         return Mono.just(issueDTO).map { Issue(it) }.flatMap { issueRepo.save(it) }
             .publishOn(Schedulers.boundedElastic()).map {
                 sender.convertAndSend(IssueDataEvent(DataEventCode.CREATED, it.id!!))
