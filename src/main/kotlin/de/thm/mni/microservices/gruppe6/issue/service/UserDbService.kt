@@ -17,12 +17,12 @@ class UserDbService(@Autowired val userRepo: UserRepository) {
 
     fun hasUser(userId: UUID): Mono<Boolean> = userRepo.existsById(userId)
 
-    fun receiveUpdate(userEvent: UserDataEvent) {
-        when (userEvent.code){
-            CREATED -> userRepo.save(User(userEvent.id))
-            DELETED -> userRepo.deleteById(userEvent.id)
+    fun receiveUpdate(userDataEvent: UserDataEvent) {
+        when (userDataEvent.code){
+            CREATED -> userRepo.save(User(userDataEvent.id))
+            DELETED -> userRepo.deleteById(userDataEvent.id)
             UPDATED -> {}
-            else -> throw IllegalArgumentException("Unexpected code for userEvent: ${userEvent.code}")
+            else -> throw IllegalArgumentException("Unexpected code for userDataEvent: ${userDataEvent.code}")
         }
     }
 }
