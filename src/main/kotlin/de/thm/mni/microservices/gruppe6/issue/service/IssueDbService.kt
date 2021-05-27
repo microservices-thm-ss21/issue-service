@@ -32,7 +32,7 @@ class IssueDbService(@Autowired val issueRepo: IssueRepository, @Autowired val s
             .publishOn(Schedulers.boundedElastic()).map {
                 sender.convertAndSend(IssueDataEvent(DataEventCode.CREATED, it.id!!))
             it
-        }
+            }
     }
 
     fun updateIssue(issueId: UUID, issueDTO: IssueDTO): Mono<Issue> {
