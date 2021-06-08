@@ -10,10 +10,8 @@ import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
-import java.lang.IllegalArgumentException
 import java.time.LocalDateTime
 import java.util.*
-import kotlin.collections.ArrayList
 
 @Component
 class IssueDbService(@Autowired val issueRepo: IssueRepository, @Autowired val sender: JmsTemplate) {
@@ -30,7 +28,7 @@ class IssueDbService(@Autowired val issueRepo: IssueRepository, @Autowired val s
     fun createIssue(issueDTO: IssueDTO): Mono<Issue> {
         return Mono.just(issueDTO).map { Issue(it) }.flatMap { issueRepo.save(it) }
             .publishOn(Schedulers.boundedElastic()).map {
-                sender.convertAndSend(IssueDataEvent(DataEventCode.CREATED, it.id!!))
+                sender.convertAndSend(EventTopic.DataEvents.topic, IssueDataEvent(DataEventCode.CREATED, it.id!!))
             it
             }
     }
@@ -42,8 +40,8 @@ class IssueDbService(@Autowired val issueRepo: IssueRepository, @Autowired val s
             it
             }
             .publishOn(Schedulers.boundedElastic()).map {
-                sender.convertAndSend(IssueDataEvent(DataEventCode.UPDATED, issueId))
-                it.second.forEach(sender::convertAndSend)
+                sender.convertAndSend(EventTopic.DataEvents.topic, IssueDataEvent(DataEventCode.UPDATED, issueId))
+                it.second.forEach {(topic, event) -> sender.convertAndSend(topic, event) }
                 it.first
             }
     }
@@ -51,39 +49,47 @@ class IssueDbService(@Autowired val issueRepo: IssueRepository, @Autowired val s
     fun deleteIssue(issueId: UUID): Mono<Void> {
         return issueRepo.deleteById(issueId)
             .publishOn(Schedulers.boundedElastic()).map {
-                sender.convertAndSend(IssueDataEvent(DataEventCode.DELETED, issueId))
+                sender.convertAndSend(EventTopic.DataEvents.topic, IssueDataEvent(DataEventCode.DELETED, issueId))
                 it
             }
     }
 
-    fun Issue.applyIssueDTO(issueDTO: IssueDTO): Pair<Issue, List<DomainEvent>> {
-        val eventList = ArrayList<DomainEvent>()
+    fun Issue.applyIssueDTO(issueDTO: IssueDTO): Pair<Issue, List<Pair<String,DomainEvent>>> {
+        val eventList = ArrayList<Pair<String,DomainEvent>>()
 
         if(this.projectId != issueDTO.projectId)
             throw IllegalArgumentException("You may not update the project ID of an existing Issue")
         if(this.message != issueDTO.message!!){
-            eventList.add(DomainEventChangedString(
-                DomainEventCode.ISSUE_CHANGED_MESSAGE,
-                this.id!!,
-                this.message,
-                issueDTO.message))
+            eventList.add(
+                Pair(EventTopic.DomainEvents_IssueService.topic,
+                    DomainEventChangedString(
+                        DomainEventCode.ISSUE_CHANGED_MESSAGE,
+                        this.id!!,
+                        this.message,
+                        issueDTO.message))
+            )
             this.message = issueDTO.message!!
         }
         if(this.deadline != issueDTO.deadline){
-            eventList.add(DomainEventChangedDate(
-                DomainEventCode.ISSUE_CHANGED_DEADLINE,
-                this.id!!,
-                this.deadline,
-                issueDTO.deadline
-                ))
+            eventList.add(
+                Pair(EventTopic.DomainEvents_IssueService.topic,
+                    DomainEventChangedDate(
+                        DomainEventCode.ISSUE_CHANGED_DEADLINE,
+                        this.id!!,
+                        this.deadline,
+                        issueDTO.deadline
+                )))
             this.deadline = issueDTO.deadline
         }
         if(this.assignedUserId != issueDTO.assignedUserId){
-            eventList.add(DomainEventChangedUUID(
-                DomainEventCode.ISSUE_CHANGED_USER,
-                this.id!!,
-                this.assignedUserId,
-                issueDTO.assignedUserId))
+            eventList.add(
+                Pair(EventTopic.DomainEvents_IssueService.topic,
+                    DomainEventChangedUUID(
+                        DomainEventCode.ISSUE_CHANGED_USER,
+                        this.id!!,
+                        this.assignedUserId,
+                        issueDTO.assignedUserId))
+            )
             this.assignedUserId = issueDTO.assignedUserId
         }
         this.updateTime = LocalDateTime.now()

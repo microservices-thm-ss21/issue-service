@@ -1,15 +1,17 @@
 package de.thm.mni.microservices.gruppe6.issue.event
 
 import de.thm.mni.microservices.gruppe6.issue.service.DataEventService
-
 import de.thm.mni.microservices.gruppe6.lib.event.DataEvent
 import de.thm.mni.microservices.gruppe6.lib.event.DomainEvent
+import de.thm.mni.microservices.gruppe6.lib.event.EventTopic
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.jms.annotation.JmsListener
+import org.springframework.jms.annotation.JmsListeners
+import org.springframework.jms.support.destination.DynamicDestinationResolver
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
-import javax.jms.JMSConnectionFactory
 import javax.jms.Message
 import javax.jms.ObjectMessage
 
@@ -18,7 +20,11 @@ class Receiver(private val dataEventService: DataEventService) {
 
     val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
-    @JmsListener(destination = "microservices.events", containerFactory = "jmsListenerContainerFactory")
+    @JmsListeners(
+        JmsListener(destination = EventTopic.DataEvents.topic, containerFactory = "jmsListenerContainerFactory"),
+        //JmsListener(destination = EventTopic.DomainEvents_UserService.topic, containerFactory = "jmsListenerContainerFactory"),
+        //JmsListener(destination = EventTopic.DomainEvents_ProjectService.topic, containerFactory = "jmsListenerContainerFactory")
+    )
     fun receive(message: Message) {
         try {
             if (message !is ObjectMessage) {
@@ -34,6 +40,10 @@ class Receiver(private val dataEventService: DataEventService) {
                     logger.debug("Received DomainEvent Object Message with code {}", payload.code)
                     /** Do nothing for now / forever with domain events
                      * No use within issue service */
+                    logger.error(
+                        "Received DomainEvent within IssueService with code {}",
+                        payload.code
+                    )
                 }
                 else -> {
                     logger.error(
