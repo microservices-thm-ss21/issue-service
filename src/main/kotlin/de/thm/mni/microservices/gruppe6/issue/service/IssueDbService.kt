@@ -28,7 +28,7 @@ class IssueDbService(@Autowired val issueRepo: IssueRepository, @Autowired val s
     fun createIssue(issueDTO: IssueDTO): Mono<Issue> {
         return Mono.just(issueDTO).map { Issue(it) }.flatMap { issueRepo.save(it) }
             .publishOn(Schedulers.boundedElastic()).map {
-                sender.convertAndSend(EventTopic.DataEvents.topic, IssueDataEvent(DataEventCode.CREATED, it.id!!))
+                sender.convertAndSend(EventTopic.DataEvents.topic, IssueDataEvent(DataEventCode.CREATED, it.id!!, it.projectId))
             it
             }
     }
@@ -40,7 +40,7 @@ class IssueDbService(@Autowired val issueRepo: IssueRepository, @Autowired val s
             it
             }
             .publishOn(Schedulers.boundedElastic()).map {
-                sender.convertAndSend(EventTopic.DataEvents.topic, IssueDataEvent(DataEventCode.UPDATED, issueId))
+                sender.convertAndSend(EventTopic.DataEvents.topic, IssueDataEvent(DataEventCode.UPDATED, issueId, it.first.projectId))
                 it.second.forEach {(topic, event) -> sender.convertAndSend(topic, event) }
                 it.first
             }
@@ -54,6 +54,12 @@ class IssueDbService(@Autowired val issueRepo: IssueRepository, @Autowired val s
             }
     }
 
+
+    /**
+     * apply the issueDTO to the issue model as stored in DB and generate Domain Events
+     * @param issueDTO request body to apply to a issue
+     * @return the updated issue and a list of events to be issued: (Topic, new DomainEvent)
+     */
     fun Issue.applyIssueDTO(issueDTO: IssueDTO): Pair<Issue, List<Pair<String,DomainEvent>>> {
         val eventList = ArrayList<Pair<String,DomainEvent>>()
 
