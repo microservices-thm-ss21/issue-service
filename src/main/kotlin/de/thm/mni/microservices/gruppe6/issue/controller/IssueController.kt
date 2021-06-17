@@ -6,13 +6,12 @@ import de.thm.mni.microservices.gruppe6.issue.service.IssueDbService
 import de.thm.mni.microservices.gruppe6.lib.exception.ServiceException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
-import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.util.*
 
-@Controller
+@RestController
 @RequestMapping("/api/issues")
 @CrossOrigin
 class IssueController(@Autowired val issueService: IssueDbService) {
