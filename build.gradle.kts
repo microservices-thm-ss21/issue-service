@@ -22,22 +22,10 @@ repositories {
     mavenCentral()
 }
 
-extra["springBootAdminVersion"] = "2.3.1"
-
-buildscript {
-    dependencies {
-        classpath("com.avast.gradle:gradle-docker-compose-plugin:0.14.2")
-    }
-}
-
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-activemq")
-    implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
-    implementation("org.springframework.boot:spring-boot-starter-data-rest")
-    //implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-    implementation("de.codecentric:spring-boot-admin-starter-client")
     implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("de.thm.mni.microservices.gruppe6:service-lib:0.0.1-SNAPSHOT")
@@ -49,13 +37,6 @@ dependencies {
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("io.projectreactor:reactor-test")
-    testImplementation("org.springframework.security:spring-security-test")
-}
-
-dependencyManagement {
-    imports {
-        mavenBom("de.codecentric:spring-boot-admin-dependencies:${property("springBootAdminVersion")}")
-    }
 }
 
 tasks.withType<KotlinCompile> {
@@ -67,9 +48,4 @@ tasks.withType<KotlinCompile> {
 
 tasks.withType<Test> {
     useJUnitPlatform()
-}
-
-task<Exec>("docker-build") {
-    description = "Builds docker"
-    commandLine = listOf("docker-compose build")
 }

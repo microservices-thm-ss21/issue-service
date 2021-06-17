@@ -23,7 +23,7 @@ class IssueController(@Autowired val issueService: IssueDbService) {
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
     fun createIssue(@RequestBody issueDTO: IssueDTO): Mono<Issue> =
-        issueService.createIssue(issueDTO).onErrorResume { Mono.error(ServiceException(HttpStatus.CONFLICT, it)) }
+        issueService.createIssue(issueDTO).onErrorResume { Mono.error(ServiceException(HttpStatus.CONFLICT, cause = it)) }
 
     @GetMapping("{issueId}")
     fun getIssue(@PathVariable issueId: UUID): Mono<Issue> =
@@ -33,7 +33,7 @@ class IssueController(@Autowired val issueService: IssueDbService) {
     fun updateIssue(
         @PathVariable issueId: UUID,
         @RequestBody issueDTO: IssueDTO
-    ): Mono<Issue> = issueService.updateIssue(issueId, issueDTO).onErrorResume { Mono.error(ServiceException(HttpStatus.CONFLICT, it)) }
+    ): Mono<Issue> = issueService.updateIssue(issueId, issueDTO).onErrorResume { Mono.error(ServiceException(HttpStatus.CONFLICT, cause = it)) }
 
     @DeleteMapping("{issueId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
