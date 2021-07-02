@@ -6,6 +6,7 @@ import de.thm.mni.microservices.gruppe6.issue.model.persistence.Project
 
 import de.thm.mni.microservices.gruppe6.lib.event.ProjectDataEvent
 import de.thm.mni.microservices.gruppe6.lib.event.DataEventCode.*
+import io.micrometer.influx.InfluxConfig
 import org.springframework.stereotype.Component
 import java.util.*
 import reactor.core.publisher.Mono
