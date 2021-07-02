@@ -20,6 +20,8 @@ class IssueDbService(@Autowired val issueRepo: IssueRepository, @Autowired val s
 
     fun getAllProjectIssues(projectId: UUID): Flux<Issue> = issueRepo.getIssuesByProjectId(projectId)
 
+    fun getAllAssignedIssues(userId: UUID): Flux<Issue> = issueRepo.getIssuesByAssignedUserId(userId)
+
     fun getIssue(issueId: UUID): Mono<Issue> {
         return issueRepo.findById(issueId)
     }

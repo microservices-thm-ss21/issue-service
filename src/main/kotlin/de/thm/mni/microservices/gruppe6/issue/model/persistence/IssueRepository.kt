@@ -8,4 +8,6 @@ interface IssueRepository: ReactiveCrudRepository<Issue, UUID> {
 
     fun getIssuesByProjectId(project_id: UUID): Flux<Issue>
 
+    fun getIssuesByAssignedUserId(userId: UUID): Flux<Issue>
+
 }
