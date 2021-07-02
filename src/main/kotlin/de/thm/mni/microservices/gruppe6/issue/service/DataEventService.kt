@@ -17,8 +17,8 @@ class DataEventService(
 
         dataEvent.subscribe {
             when (it) {
-                is ProjectDataEvent -> projectDbService::receiveUpdate
-                is UserDataEvent -> userDbService::receiveUpdate
+                is ProjectDataEvent -> {projectDbService.receiveUpdate(it)}
+                is UserDataEvent -> {userDbService.receiveUpdate(it)}
                 is IssueDataEvent -> {/* Do nothing with own events */ }
                 else -> error("Unexpected Event type: ${it?.javaClass}")
             }
