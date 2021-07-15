@@ -15,6 +15,7 @@ services:
 
   issue-service:
     image: issue-service
+    container_name: issue-service
     build:
       context: ./
       dockerfile: Dockerfile
