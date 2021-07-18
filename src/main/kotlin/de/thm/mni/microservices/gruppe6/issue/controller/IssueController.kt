@@ -40,7 +40,8 @@ class IssueController(@Autowired val issueService: IssueDbService) {
         issueService.deleteIssue(issueId)
 
     @GetMapping("project/{projectId}")
-    fun getAllProjectIssues(@PathVariable projectId: UUID): Flux<Issue> = issueService.getAllProjectIssues(projectId)
+    fun getAllProjectIssues(@PathVariable projectId: UUID): Flux<Issue> =
+        issueService.getAllProjectIssues(projectId)
 
     @GetMapping("user/{userId}")
     fun getAllAssignedIssues(@PathVariable userId: UUID): Flux<Issue> = issueService.getAllAssignedIssues(userId)
