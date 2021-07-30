@@ -67,6 +67,4 @@ class IssueController(@Autowired val issueService: IssueDbService) {
 
 
 
-    @GetMapping("user/{userId}")
-    fun getAllAssignedIssues(@PathVariable userId: UUID): Flux<Issue> = issueService.getAllAssignedIssues(userId)
 }

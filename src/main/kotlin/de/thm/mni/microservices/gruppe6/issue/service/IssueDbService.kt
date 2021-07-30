@@ -20,7 +20,13 @@ import java.time.LocalDateTime
 import java.util.*
 
 @Component
-class IssueDbService(@Autowired val issueRepo: IssueRepository, @Autowired val sender: JmsTemplate) {
+class IssueDbService(
+    @Autowired val issueRepo: IssueRepository,
+    @Autowired val sender: JmsTemplate,
+    @Autowired val requester: Requester
+) {
+
+    private val logger = LoggerFactory.getLogger(this::class.java)
 
     fun getAllIssues(): Flux<Issue> {
         logger.debug("getAllIssues")
@@ -58,6 +64,9 @@ class IssueDbService(@Autowired val issueRepo: IssueRepository, @Autowired val s
     fun updateIssue(issueId: UUID, issueDTO: IssueDTO, requesterUser: User): Mono<Issue> {
         logger.debug("updateIssue: $issueId $issueDTO $requesterUser")
         return issueRepo.findById(issueId)
+            .flatMap { issue ->
+                checkProjectMember(issue, requesterUser)
+            }
             .map { it.applyIssueDTO(issueDTO) }
             .map {
                 issueRepo.save(it.first)
@@ -141,6 +150,30 @@ class IssueDbService(@Autowired val issueRepo: IssueRepository, @Autowired val s
         }
         this.updateTime = LocalDateTime.now()
         return Pair(this, eventList)
+    }
+
+
+    fun checkProjectMember(issue: Issue, user: User): Mono<Issue> {
+        logger.debug("checkProjectMember: $issue $user")
+        return Mono.just(issue).flatMap {
+            // Check for either creator or global support/admin
+            if (user.id == issue.creatorId || user.globalRole != GlobalRole.USER.name) {
+                Mono.just(issue)
+            } else {
+                // Else send request to projectService and ask if user is member
+                requester.forwardGetRequestMono(
+                    "http://project-service:8082",
+                    "/api/projects/${issue.projectId}/members/${user.id}}/exists",
+                    Boolean::class.java
+                )   // check if is member
+                    .filter {
+                        it
+                    }
+                    .map {
+                        issue
+                    }
+            }
+        }.switchIfEmpty(Mono.error(ServiceException(HttpStatus.FORBIDDEN, "Current has no permissions")))
     }
 
 }

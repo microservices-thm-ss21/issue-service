@@ -14,6 +14,7 @@ create table issues (
     project_id uuid NOT NULL,
     message varchar(100) NOT NULL,
     assigned_user_id uuid NULL,
+    creator_id uuid NOT NULL,
     deadline date NULL,
     create_time timestamp NOT NULL ,
     update_time timestamp NULL,
@@ -31,5 +32,5 @@ insert into users values ('a443ffd0-f7a8-44f6-8ad3-87acd1e91042');
 insert into users values ('a443ffd0-f7a8-44f6-8ad3-87acd1e91043');
 insert into users values ('a443ffd0-f7a8-44f6-8ad3-87acd1e91044');
 
-insert into issues values ('a3974d24-5735-410c-b109-ad262755d4d3','54ed2c8e-054d-4fb0-81ac-d7ed726b1879', 'Das ist eine Nachricht', 'a443ffd0-f7a8-44f6-8ad3-87acd1e91042',
-                           null, current_date,  null)
+insert into issues values ('a3974d24-5735-410c-b109-ad262755d4d3','54ed2c8e-054d-4fb0-81ac-d7ed726b1879', 'Das ist eine Nachricht', 'a443ffd0-f7a8-44f6-8ad3-87acd1e91044','a443ffd0-f7a8-44f6-8ad3-87acd1e91043',
+                           null, current_date,  null);
