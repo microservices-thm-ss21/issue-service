@@ -34,12 +34,12 @@ class IssueDbService(
     }
 
     fun getAllProjectIssues(projectId: UUID): Flux<Issue> {
-        logger.debug("getAllProjectIssues ${projectId}")
+        logger.debug("getAllProjectIssues $projectId")
         return issueRepo.getIssuesByProjectId(projectId)
     }
 
     fun getAllAssignedIssues(userId: UUID): Flux<Issue> {
-        logger.debug("getAllAssignedIssues ${userId}")
+        logger.debug("getAllAssignedIssues $userId")
         return issueRepo.getIssuesByAssignedUserId(userId)
     }
 
@@ -98,7 +98,7 @@ class IssueDbService(
 
     /**
      * apply the issueDTO to the issue model as stored in DB and generate Domain Events
-     * @param issueDTO request body to apply to a issue
+     * @param issueDTO request body to apply to an issue
      * @return the updated issue and a list of events to be issued: (Topic, new DomainEvent)
      */
     fun Issue.applyIssueDTO(issueDTO: IssueDTO): Pair<Issue, List<Pair<String, DomainEvent>>> {
@@ -163,10 +163,11 @@ class IssueDbService(
                 // Else send request to projectService and ask if user is member
                 requester.forwardGetRequestMono(
                     "http://project-service:8082",
-                    "/api/projects/${issue.projectId}/members/${user.id}}/exists",
+                    "api/projects/${issue.projectId}/members/${user.id}/exists",
                     Boolean::class.java
                 )   // check if is member
                     .filter {
+                        logger.debug("$it")
                         it
                     }
                     .map {

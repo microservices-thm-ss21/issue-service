@@ -27,10 +27,10 @@ create table issues (
 );
 
 
-insert into projects values ('54ed2c8e-054d-4fb0-81ac-d7ed726b1879');
+insert into projects values ('e86c57cb-d703-4f39-9632-3782cb5500e8');
 insert into users values ('a443ffd0-f7a8-44f6-8ad3-87acd1e91042');
 insert into users values ('a443ffd0-f7a8-44f6-8ad3-87acd1e91043');
 insert into users values ('a443ffd0-f7a8-44f6-8ad3-87acd1e91044');
 
-insert into issues values ('a3974d24-5735-410c-b109-ad262755d4d3','54ed2c8e-054d-4fb0-81ac-d7ed726b1879', 'Das ist eine Nachricht', 'a443ffd0-f7a8-44f6-8ad3-87acd1e91044','a443ffd0-f7a8-44f6-8ad3-87acd1e91043',
+insert into issues values ('a3974d24-5735-410c-b109-ad262755d4d3','e86c57cb-d703-4f39-9632-3782cb5500e8', 'Das ist eine Nachricht', 'a443ffd0-f7a8-44f6-8ad3-87acd1e91044','a443ffd0-f7a8-44f6-8ad3-87acd1e91043',
                            null, current_date,  null);

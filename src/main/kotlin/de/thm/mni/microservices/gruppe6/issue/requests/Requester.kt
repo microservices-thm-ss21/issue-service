@@ -28,6 +28,8 @@ class Requester {
 
     fun <T> forwardGetRequestFlux(baseURI: String, routeURI: String, returnClass: Class<T>): Flux<T> {
         return getResponseSpec(baseURI, routeURI).exchangeToFlux { response: ClientResponse ->
+            logger.debug("$response")
+            logger.debug("${response.statusCode()}")
             if (response.statusCode() == HttpStatus.OK) {
                 logger.debug("Everything ok")
                 response.bodyToFlux(returnClass)
@@ -40,7 +42,8 @@ class Requester {
 
     fun <T> forwardGetRequestMono(baseURI: String, routeURI: String, returnClass: Class<T>): Mono<T> {
         return getResponseSpec(baseURI, routeURI).exchangeToMono { response: ClientResponse ->
-            logger.debug("$response")
+            logger.debug(response.toString())
+            logger.debug("${response.statusCode()}")
             if (response.statusCode() == HttpStatus.OK) {
                 logger.debug("Everything ok")
                 response.bodyToMono(returnClass)

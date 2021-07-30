@@ -64,7 +64,4 @@ class IssueController(@Autowired val issueService: IssueDbService) {
     fun deleteIssue(@PathVariable issueId: UUID): Mono<Void> =
         // toDo JWT USER ID as deleter ID
         issueService.deleteIssue(issueId, jwtUser)
-
-
-
 }
