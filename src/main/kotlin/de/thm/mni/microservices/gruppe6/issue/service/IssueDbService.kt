@@ -3,6 +3,7 @@ package de.thm.mni.microservices.gruppe6.issue.service
 import de.thm.mni.microservices.gruppe6.issue.model.message.IssueDTO
 import de.thm.mni.microservices.gruppe6.issue.model.persistence.Issue
 import de.thm.mni.microservices.gruppe6.issue.model.persistence.IssueRepository
+import de.thm.mni.microservices.gruppe6.issue.model.persistence.UserRepository
 import de.thm.mni.microservices.gruppe6.issue.requests.Requester
 import de.thm.mni.microservices.gruppe6.lib.classes.userService.GlobalRole
 import de.thm.mni.microservices.gruppe6.lib.classes.userService.User
@@ -16,6 +17,8 @@ import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
+import reactor.kotlin.core.publisher.switchIfEmpty
+import reactor.kotlin.extra.bool.not
 import java.time.LocalDateTime
 import java.util.*
 
@@ -23,7 +26,8 @@ import java.util.*
 class IssueDbService(
     @Autowired val issueRepo: IssueRepository,
     @Autowired val sender: JmsTemplate,
-    @Autowired val requester: Requester
+    @Autowired val requester: Requester,
+    @Autowired val userRepository: UserRepository
 ) {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
@@ -50,8 +54,19 @@ class IssueDbService(
 
     fun createIssue(issueDTO: IssueDTO, requesterId: UUID): Mono<Issue> {
         logger.debug("updateIssue: $issueDTO $issueDTO $requesterId")
-        return Mono.just(issueDTO)
-            .map { Issue(it, requesterId) }.flatMap { issueRepo.save(it) }
+        return userRepository.existsById(requesterId)
+            .filter{ it }.switchIfEmpty {
+                Mono.error(ServiceException(HttpStatus.NOT_FOUND, "creator user does not exist"))
+            }
+            .flatMap {
+                if(issueDTO.assignedUserId != null) userRepository.existsById(issueDTO.assignedUserId!!)
+                else Mono.just(true)
+            }.filter{it}
+            .switchIfEmpty {
+                Mono.error(ServiceException(HttpStatus.NOT_FOUND, "assigned user does not exist"))
+            }
+            .map { Issue(issueDTO, requesterId) }
+            .flatMap { issueRepo.save(it) }
             .publishOn(Schedulers.boundedElastic()).map {
                 sender.convertAndSend(
                     EventTopic.DataEvents.topic,
@@ -63,16 +78,22 @@ class IssueDbService(
 
     fun updateIssue(issueId: UUID, issueDTO: IssueDTO, requesterUser: User): Mono<Issue> {
         logger.debug("updateIssue: $issueId $issueDTO $requesterUser")
-        return issueRepo.findById(issueId)
-            .flatMap { issue ->
+        return Mono.just(issueDTO.assignedUserId != null).flatMap {
+                if (it)
+                    userRepository.existsById(issueDTO.assignedUserId!!)
+                else
+                    Mono.just(true)
+            }.switchIfEmpty {
+                Mono.error(ServiceException(HttpStatus.NOT_FOUND, "assigned user does not exist"))
+            }.flatMap {
+                issueRepo.findById(issueId)
+            }.flatMap { issue ->
                 checkProjectMember(issue, requesterUser)
-            }
-            .map { it.applyIssueDTO(issueDTO) }
+            }.map { it.applyIssueDTO(issueDTO) }
             .map {
                 issueRepo.save(it.first)
                 it
-            }
-            .publishOn(Schedulers.boundedElastic()).map {
+            }.publishOn(Schedulers.boundedElastic()).map {
                 sender.convertAndSend(
                     EventTopic.DataEvents.topic,
                     IssueDataEvent(DataEventCode.UPDATED, issueId, it.first.projectId)
