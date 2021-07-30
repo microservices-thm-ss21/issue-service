@@ -3,8 +3,14 @@ package de.thm.mni.microservices.gruppe6.issue.service
 import de.thm.mni.microservices.gruppe6.issue.model.message.IssueDTO
 import de.thm.mni.microservices.gruppe6.issue.model.persistence.Issue
 import de.thm.mni.microservices.gruppe6.issue.model.persistence.IssueRepository
+import de.thm.mni.microservices.gruppe6.issue.requests.Requester
+import de.thm.mni.microservices.gruppe6.lib.classes.userService.GlobalRole
+import de.thm.mni.microservices.gruppe6.lib.classes.userService.User
 import de.thm.mni.microservices.gruppe6.lib.event.*
+import de.thm.mni.microservices.gruppe6.lib.exception.ServiceException
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
 import org.springframework.jms.core.JmsTemplate
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
@@ -16,40 +22,64 @@ import java.util.*
 @Component
 class IssueDbService(@Autowired val issueRepo: IssueRepository, @Autowired val sender: JmsTemplate) {
 
-    fun getAllIssues(): Flux<Issue> = issueRepo.findAll()
+    fun getAllIssues(): Flux<Issue> {
+        logger.debug("getAllIssues")
+        return issueRepo.findAll()
+    }
 
-    fun getAllProjectIssues(projectId: UUID): Flux<Issue> = issueRepo.getIssuesByProjectId(projectId)
+    fun getAllProjectIssues(projectId: UUID): Flux<Issue> {
+        logger.debug("getAllProjectIssues ${projectId}")
+        return issueRepo.getIssuesByProjectId(projectId)
+    }
 
-    fun getAllAssignedIssues(userId: UUID): Flux<Issue> = issueRepo.getIssuesByAssignedUserId(userId)
+    fun getAllAssignedIssues(userId: UUID): Flux<Issue> {
+        logger.debug("getAllAssignedIssues ${userId}")
+        return issueRepo.getIssuesByAssignedUserId(userId)
+    }
 
     fun getIssue(issueId: UUID): Mono<Issue> {
+        logger.debug("getIssue $issueId")
         return issueRepo.findById(issueId)
     }
 
-
-    fun createIssue(issueDTO: IssueDTO): Mono<Issue> {
-        return Mono.just(issueDTO).map { Issue(it) }.flatMap { issueRepo.save(it) }
+    fun createIssue(issueDTO: IssueDTO, requesterId: UUID): Mono<Issue> {
+        logger.debug("updateIssue: $issueDTO $issueDTO $requesterId")
+        return Mono.just(issueDTO)
+            .map { Issue(it, requesterId) }.flatMap { issueRepo.save(it) }
             .publishOn(Schedulers.boundedElastic()).map {
-                sender.convertAndSend(EventTopic.DataEvents.topic, IssueDataEvent(DataEventCode.CREATED, it.id!!, it.projectId))
-            it
+                sender.convertAndSend(
+                    EventTopic.DataEvents.topic,
+                    IssueDataEvent(DataEventCode.CREATED, it.id!!, it.projectId)
+                )
+                it
             }
     }
 
-    fun updateIssue(issueId: UUID, issueDTO: IssueDTO): Mono<Issue> {
+    fun updateIssue(issueId: UUID, issueDTO: IssueDTO, requesterUser: User): Mono<Issue> {
+        logger.debug("updateIssue: $issueId $issueDTO $requesterUser")
         return issueRepo.findById(issueId)
             .map { it.applyIssueDTO(issueDTO) }
-            .map { issueRepo.save(it.first)
-            it
+            .map {
+                issueRepo.save(it.first)
+                it
             }
             .publishOn(Schedulers.boundedElastic()).map {
-                sender.convertAndSend(EventTopic.DataEvents.topic, IssueDataEvent(DataEventCode.UPDATED, issueId, it.first.projectId))
-                it.second.forEach {(topic, event) -> sender.convertAndSend(topic, event) }
+                sender.convertAndSend(
+                    EventTopic.DataEvents.topic,
+                    IssueDataEvent(DataEventCode.UPDATED, issueId, it.first.projectId)
+                )
+                it.second.forEach { (topic, event) -> sender.convertAndSend(topic, event) }
                 it.first
             }
     }
 
-    fun deleteIssue(issueId: UUID): Mono<Void> {
-        return issueRepo.deleteById(issueId)
+    fun deleteIssue(issueId: UUID, requesterUser: User): Mono<Void> {
+        logger.debug("deleteIssue: $issueId $requesterUser")
+        return issueRepo.findById(issueId)
+            .flatMap { checkProjectMember(it, requesterUser) }
+            .flatMap {
+                issueRepo.deleteById(issueId)
+            }
             .publishOn(Schedulers.boundedElastic()).map {
                 sender.convertAndSend(EventTopic.DataEvents.topic, IssueDataEvent(DataEventCode.DELETED, issueId))
                 it
@@ -62,41 +92,50 @@ class IssueDbService(@Autowired val issueRepo: IssueRepository, @Autowired val s
      * @param issueDTO request body to apply to a issue
      * @return the updated issue and a list of events to be issued: (Topic, new DomainEvent)
      */
-    fun Issue.applyIssueDTO(issueDTO: IssueDTO): Pair<Issue, List<Pair<String,DomainEvent>>> {
-        val eventList = ArrayList<Pair<String,DomainEvent>>()
+    fun Issue.applyIssueDTO(issueDTO: IssueDTO): Pair<Issue, List<Pair<String, DomainEvent>>> {
+        val eventList = ArrayList<Pair<String, DomainEvent>>()
 
-        if(this.projectId != issueDTO.projectId)
+        if (this.projectId != issueDTO.projectId)
             throw IllegalArgumentException("You may not update the project ID of an existing Issue")
-        if(this.message != issueDTO.message!!){
+        if (this.message != issueDTO.message!!) {
             eventList.add(
-                Pair(EventTopic.DomainEvents_IssueService.topic,
+                Pair(
+                    EventTopic.DomainEvents_IssueService.topic,
                     DomainEventChangedString(
                         DomainEventCode.ISSUE_CHANGED_MESSAGE,
                         this.id!!,
                         this.message,
-                        issueDTO.message))
+                        issueDTO.message
+                    )
+                )
             )
             this.message = issueDTO.message!!
         }
-        if(this.deadline != issueDTO.deadline){
+        if (this.deadline != issueDTO.deadline) {
             eventList.add(
-                Pair(EventTopic.DomainEvents_IssueService.topic,
+                Pair(
+                    EventTopic.DomainEvents_IssueService.topic,
                     DomainEventChangedDate(
                         DomainEventCode.ISSUE_CHANGED_DEADLINE,
                         this.id!!,
                         this.deadline,
                         issueDTO.deadline
-                )))
+                    )
+                )
+            )
             this.deadline = issueDTO.deadline
         }
-        if(this.assignedUserId != issueDTO.assignedUserId){
+        if (this.assignedUserId != issueDTO.assignedUserId) {
             eventList.add(
-                Pair(EventTopic.DomainEvents_IssueService.topic,
+                Pair(
+                    EventTopic.DomainEvents_IssueService.topic,
                     DomainEventChangedUUID(
                         DomainEventCode.ISSUE_CHANGED_USER,
                         this.id!!,
                         this.assignedUserId,
-                        issueDTO.assignedUserId))
+                        issueDTO.assignedUserId
+                    )
+                )
             )
             this.assignedUserId = issueDTO.assignedUserId
         }
