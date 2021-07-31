@@ -19,7 +19,6 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 import reactor.kotlin.core.publisher.switchIfEmpty
-import reactor.kotlin.extra.bool.not
 import java.time.LocalDateTime
 import java.util.*
 
@@ -57,19 +56,22 @@ class IssueDbService(
     fun createIssue(issueDTO: IssueDTO, requesterId: UUID): Mono<Issue> {
         logger.debug("updateIssue: $issueDTO $issueDTO $requesterId")
         return userRepository.existsById(requesterId)
-            .filter{ it }.switchIfEmpty {
+            .filter { it }
+            .switchIfEmpty {
                 Mono.error(ServiceException(HttpStatus.NOT_FOUND, "creator user does not exist"))
             }
             .flatMap {
-                if(issueDTO.assignedUserId != null) userRepository.existsById(issueDTO.assignedUserId!!)
+                if (issueDTO.assignedUserId != null) userRepository.existsById(issueDTO.assignedUserId!!)
                 else Mono.just(true)
-            }.filter{it}
+            }
+            .filter { it }
             .switchIfEmpty {
                 Mono.error(ServiceException(HttpStatus.NOT_FOUND, "assigned user does not exist"))
             }
             .flatMap {
                 projectRepository.existsById(issueDTO.projectId!!)
-            }.filter{it}
+            }
+            .filter { it }
             .switchIfEmpty {
                 Mono.error(ServiceException(HttpStatus.NOT_FOUND, "associated project does not exist"))
             }
@@ -92,23 +94,28 @@ class IssueDbService(
                 else
                     Mono.just(true)
             }
-            .filter{it}
+            .filter { it }
             .switchIfEmpty {
                 Mono.error(ServiceException(HttpStatus.NOT_FOUND, "assigned user does not exist"))
             }.flatMap {
                 projectRepository.existsById(issueDTO.projectId!!)
-            }.filter{it}
+            }
+            .filter { it }
             .switchIfEmpty {
                 Mono.error(ServiceException(HttpStatus.NOT_FOUND, "associated project does not exist"))
-            }.flatMap {
+            }
+            .flatMap {
                 issueRepo.findById(issueId)
-            }.flatMap { issue ->
+            }
+            .flatMap { issue ->
                 checkProjectMember(issue, requesterUser)
-            }.map { it.applyIssueDTO(issueDTO) }
+            }
+            .map { it.applyIssueDTO(issueDTO) }
             .map {
                 issueRepo.save(it.first)
                 it
-            }.publishOn(Schedulers.boundedElastic()).map {
+            }
+            .publishOn(Schedulers.boundedElastic()).map {
                 sender.convertAndSend(
                     EventTopic.DataEvents.topic,
                     IssueDataEvent(DataEventCode.UPDATED, issueId, it.first.projectId)
