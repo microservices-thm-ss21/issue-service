@@ -9,4 +9,5 @@ interface ProjectRepository: ReactiveCrudRepository<Project, UUID> {
 
     @Query("INSERT INTO projects VALUES (:projectId)")
     fun saveProject(projectId: UUID) : Mono<Void>
+
 }

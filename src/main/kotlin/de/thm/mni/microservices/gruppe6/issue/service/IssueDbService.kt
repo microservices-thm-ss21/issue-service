@@ -111,9 +111,10 @@ class IssueDbService(
                 checkProjectMember(issue, requesterUser)
             }
             .map { it.applyIssueDTO(issueDTO) }
-            .map {
-                issueRepo.save(it.first)
-                it
+            .flatMap {
+                issueRepo.save(it.first).map { issue ->
+                    Pair(issue, it.second)
+                }
             }
             .publishOn(Schedulers.boundedElastic()).map {
                 sender.convertAndSend(
