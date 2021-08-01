@@ -1,7 +1,7 @@
 package de.thm.mni.microservices.gruppe6.issue.service
 
-import de.thm.mni.microservices.gruppe6.issue.model.persistence.User
 import de.thm.mni.microservices.gruppe6.issue.model.persistence.UserRepository
+import de.thm.mni.microservices.gruppe6.lib.classes.userService.UserId
 import de.thm.mni.microservices.gruppe6.lib.event.DataEventCode.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -23,8 +23,8 @@ class UserDbServiceTests(
     private val service = UserDbService(repository)
 
 
-    private fun getTestUser(id: UUID) : User {
-        return User(
+    private fun getTestUser(id: UUID) : UserId {
+        return UserId(
             id
         )
     }
@@ -32,8 +32,8 @@ class UserDbServiceTests(
     private fun mockRepositorySave(id: UUID) {
         Mockito.`when`(repository.save(any())).then {
             val hopefullyUser = it.arguments.first()
-            if (hopefullyUser is User) {
-                hopefullyUser.userId = id
+            if (hopefullyUser is UserId) {
+                hopefullyUser.id = id
             }
             Mono.just(hopefullyUser)
         }

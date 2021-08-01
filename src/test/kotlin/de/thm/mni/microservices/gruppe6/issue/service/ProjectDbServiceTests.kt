@@ -1,6 +1,6 @@
 package de.thm.mni.microservices.gruppe6.issue.service
 
-import de.thm.mni.microservices.gruppe6.issue.model.persistence.Project
+import de.thm.mni.microservices.gruppe6.lib.classes.projectService.ProjectId
 import de.thm.mni.microservices.gruppe6.issue.model.persistence.ProjectRepository
 import de.thm.mni.microservices.gruppe6.lib.event.DataEvent.*
 import de.thm.mni.microservices.gruppe6.lib.event.*
@@ -24,8 +24,8 @@ class ProjectDbServiceTests(
     private val service = ProjectDbService(repository)
 
 
-    private fun getTestProject(id: UUID) : Project {
-        return Project(
+    private fun getTestProject(id: UUID) : ProjectId {
+        return ProjectId(
             id
         )
     }
@@ -37,8 +37,8 @@ class ProjectDbServiceTests(
     private fun mockRepositorySave(id: UUID) {
         Mockito.`when`(repository.save(any())).then {
             val hopefullyProject = it.arguments.first()
-            if (hopefullyProject is Project) {
-                hopefullyProject.projectId = id
+            if (hopefullyProject is ProjectId) {
+                hopefullyProject.id = id
             }
             Mono.just(hopefullyProject)
         }

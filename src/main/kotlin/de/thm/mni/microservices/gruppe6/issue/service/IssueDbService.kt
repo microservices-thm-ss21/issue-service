@@ -1,11 +1,11 @@
 package de.thm.mni.microservices.gruppe6.issue.service
 
-import de.thm.mni.microservices.gruppe6.issue.model.message.IssueDTO
-import de.thm.mni.microservices.gruppe6.issue.model.persistence.Issue
 import de.thm.mni.microservices.gruppe6.issue.model.persistence.IssueRepository
 import de.thm.mni.microservices.gruppe6.issue.model.persistence.ProjectRepository
 import de.thm.mni.microservices.gruppe6.issue.model.persistence.UserRepository
 import de.thm.mni.microservices.gruppe6.issue.requests.Requester
+import de.thm.mni.microservices.gruppe6.lib.classes.issueService.Issue
+import de.thm.mni.microservices.gruppe6.lib.classes.issueService.IssueDTO
 import de.thm.mni.microservices.gruppe6.lib.classes.userService.GlobalRole
 import de.thm.mni.microservices.gruppe6.lib.classes.userService.User
 import de.thm.mni.microservices.gruppe6.lib.event.*

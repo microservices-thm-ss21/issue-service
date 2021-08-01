@@ -1,8 +1,8 @@
 package de.thm.mni.microservices.gruppe6.issue.controller
 
-import de.thm.mni.microservices.gruppe6.issue.model.message.IssueDTO
-import de.thm.mni.microservices.gruppe6.issue.model.persistence.Issue
 import de.thm.mni.microservices.gruppe6.issue.service.IssueDbService
+import de.thm.mni.microservices.gruppe6.lib.classes.issueService.Issue
+import de.thm.mni.microservices.gruppe6.lib.classes.issueService.IssueDTO
 import de.thm.mni.microservices.gruppe6.lib.classes.userService.User
 import de.thm.mni.microservices.gruppe6.lib.exception.ServiceException
 import org.springframework.beans.factory.annotation.Autowired

@@ -1,7 +1,6 @@
 package de.thm.mni.microservices.gruppe6.issue.service
 
-import de.thm.mni.microservices.gruppe6.issue.model.message.IssueDTO
-import de.thm.mni.microservices.gruppe6.issue.model.persistence.Issue
+
 import de.thm.mni.microservices.gruppe6.issue.model.persistence.IssueRepository
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith

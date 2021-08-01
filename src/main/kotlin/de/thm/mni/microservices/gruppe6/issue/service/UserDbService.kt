@@ -1,7 +1,7 @@
 package de.thm.mni.microservices.gruppe6.issue.service
 
-import de.thm.mni.microservices.gruppe6.issue.model.persistence.User
 import de.thm.mni.microservices.gruppe6.issue.model.persistence.UserRepository
+import de.thm.mni.microservices.gruppe6.lib.classes.userService.UserId
 import de.thm.mni.microservices.gruppe6.lib.event.DataEventCode.*
 import de.thm.mni.microservices.gruppe6.lib.event.UserDataEvent
 import org.springframework.beans.factory.annotation.Autowired
@@ -13,7 +13,7 @@ import java.util.*
 @Component
 class UserDbService(@Autowired val userRepo: UserRepository) {
 
-    fun getAllUsers(): Flux<User> = userRepo.findAll()
+    fun getAllUsers(): Flux<UserId> = userRepo.findAll()
 
     fun hasUser(userId: UUID): Mono<Boolean> = userRepo.existsById(userId)
 
