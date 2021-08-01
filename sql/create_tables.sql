@@ -2,11 +2,11 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 
 create table projectIds (
-    project_id uuid primary key
+    id uuid primary key
 );
 
 create table userIds (
-    user_id uuid primary key
+    id uuid primary key
 );
 
 create table issues (
@@ -20,10 +20,10 @@ create table issues (
     update_time timestamp NULL,
     CONSTRAINT fk_project
         FOREIGN KEY (project_id)
-            REFERENCES projectIds(project_id),
+            REFERENCES projectIds(id),
     CONSTRAINT fk_user
         FOREIGN KEY (assigned_user_id)
-            REFERENCES userIds(user_id)
+            REFERENCES userIds(id)
 );
 
 
