@@ -60,6 +60,10 @@ class IssueDbService(
             .switchIfEmpty {
                 Mono.error(ServiceException(HttpStatus.NOT_FOUND, "creator user does not exist"))
             }
+            .filter { issueDTO.message != null && issueDTO.projectId != null }
+            .switchIfEmpty {
+                Mono.error(ServiceException(HttpStatus.BAD_REQUEST, "issue message and project id necessary to create an issue"))
+            }
             .flatMap {
                 if (issueDTO.assignedUserId != null) userRepository.existsById(issueDTO.assignedUserId!!)
                 else Mono.just(true)
@@ -97,7 +101,8 @@ class IssueDbService(
             .filter { it }
             .switchIfEmpty {
                 Mono.error(ServiceException(HttpStatus.NOT_FOUND, "assigned user does not exist"))
-            }.flatMap {
+            }
+            .flatMap {
                 projectRepository.existsById(issueDTO.projectId!!)
             }
             .filter { it }
@@ -148,9 +153,9 @@ class IssueDbService(
     fun Issue.applyIssueDTO(issueDTO: IssueDTO): Pair<Issue, List<Pair<String, DomainEvent>>> {
         val eventList = ArrayList<Pair<String, DomainEvent>>()
 
-        if (this.projectId != issueDTO.projectId)
+        if (issueDTO.projectId != null && this.projectId != issueDTO.projectId)
             throw IllegalArgumentException("You may not update the project ID of an existing Issue")
-        if (this.message != issueDTO.message!!) {
+        if (issueDTO.message != null && this.message != issueDTO.message!!) {
             eventList.add(
                 Pair(
                     EventTopic.DomainEvents_IssueService.topic,
@@ -164,7 +169,7 @@ class IssueDbService(
             )
             this.message = issueDTO.message!!
         }
-        if (this.deadline != issueDTO.deadline) {
+        if (issueDTO.deadline != null && this.deadline != issueDTO.deadline) {
             eventList.add(
                 Pair(
                     EventTopic.DomainEvents_IssueService.topic,
@@ -178,7 +183,7 @@ class IssueDbService(
             )
             this.deadline = issueDTO.deadline
         }
-        if (this.assignedUserId != issueDTO.assignedUserId) {
+        if (issueDTO.assignedUserId != null && this.assignedUserId != issueDTO.assignedUserId) {
             eventList.add(
                 Pair(
                     EventTopic.DomainEvents_IssueService.topic,
@@ -192,6 +197,21 @@ class IssueDbService(
             )
             this.assignedUserId = issueDTO.assignedUserId
         }
+        if(issueDTO.status != null && this.status != issueDTO.status!!.name){
+            eventList.add(
+                Pair(
+                    EventTopic.DomainEvents_IssueService.topic,
+                    DomainEventChangedString(
+                        DomainEventCode.ISSUE_CHANGED_STATUS,
+                        this.id!!,
+                        this.status,
+                        issueDTO.status!!.name
+                    )
+                )
+            )
+            this.status = issueDTO.status!!.name
+        }
+
         this.updateTime = LocalDateTime.now()
         return Pair(this, eventList)
     }

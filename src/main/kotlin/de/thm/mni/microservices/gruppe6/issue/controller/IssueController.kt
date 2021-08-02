@@ -50,14 +50,16 @@ class IssueController(@Autowired val issueService: IssueDbService) {
     @ResponseStatus(HttpStatus.CREATED)
     fun createIssue(@RequestBody issueDTO: IssueDTO): Mono<Issue> =
         // toDo JWT USER ID as creator ID
-        issueService.createIssue(issueDTO, jwtUser.id!!).onErrorResume { Mono.error(ServiceException(HttpStatus.CONFLICT, cause = it)) }
+        issueService.createIssue(issueDTO, jwtUser.id!!)
+            .onErrorResume { Mono.error(ServiceException(HttpStatus.CONFLICT, cause = it.cause)) }
 
     @PutMapping("{issueId}")
     fun updateIssue(
         @PathVariable issueId: UUID,
         @RequestBody issueDTO: IssueDTO
         // toDo JWT USER ID as creator ID
-    ): Mono<Issue> = issueService.updateIssue(issueId, issueDTO, jwtUser).onErrorResume { Mono.error(ServiceException(HttpStatus.CONFLICT, cause = it)) }
+    ): Mono<Issue> = issueService.updateIssue(issueId, issueDTO, jwtUser)
+        .onErrorResume { Mono.error(ServiceException(HttpStatus.CONFLICT,cause = it.cause)) }
 
     @DeleteMapping("{issueId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)

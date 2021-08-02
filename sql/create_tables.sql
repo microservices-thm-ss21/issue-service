@@ -18,6 +18,7 @@ create table issues (
     deadline date NULL,
     create_time timestamp NOT NULL ,
     update_time timestamp NULL,
+    status varchar(30) NOT NULL,
     CONSTRAINT fk_project
         FOREIGN KEY (project_id)
             REFERENCES projectIds(id),
@@ -33,4 +34,4 @@ insert into userIds values ('a443ffd0-f7a8-44f6-8ad3-87acd1e91043');
 insert into userIds values ('a443ffd0-f7a8-44f6-8ad3-87acd1e91044');
 
 insert into issues values ('a3974d24-5735-410c-b109-ad262755d4d3','e86c57cb-d703-4f39-9632-3782cb5500e8', 'Das ist eine Nachricht', 'a443ffd0-f7a8-44f6-8ad3-87acd1e91044','a443ffd0-f7a8-44f6-8ad3-87acd1e91043',
-                           null, current_date,  null);
+                           null, current_date, null, 'OPEN');
