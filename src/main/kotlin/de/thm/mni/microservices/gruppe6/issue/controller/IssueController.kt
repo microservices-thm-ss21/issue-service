@@ -4,7 +4,6 @@ import de.thm.mni.microservices.gruppe6.issue.service.IssueDbService
 import de.thm.mni.microservices.gruppe6.lib.classes.authentication.ServiceAuthentication
 import de.thm.mni.microservices.gruppe6.lib.classes.issueService.Issue
 import de.thm.mni.microservices.gruppe6.lib.classes.issueService.IssueDTO
-import de.thm.mni.microservices.gruppe6.lib.exception.ServiceException
 import de.thm.mni.microservices.gruppe6.lib.exception.coverUnexpectedException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
