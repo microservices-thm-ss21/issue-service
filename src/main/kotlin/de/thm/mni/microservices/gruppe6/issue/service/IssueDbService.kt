@@ -50,7 +50,7 @@ class IssueDbService(
 
     fun getIssue(issueId: UUID): Mono<Issue> {
         logger.debug("getIssue $issueId")
-        return issueRepo.findById(issueId)
+        return issueRepo.findById(issueId).switchIfEmpty { Mono.error(ServiceException(HttpStatus.NOT_FOUND)) }
     }
 
     fun createIssue(issueDTO: IssueDTO, requesterId: UUID): Mono<Issue> {
@@ -131,12 +131,15 @@ class IssueDbService(
             }
     }
 
-    fun deleteIssue(issueId: UUID, requesterUser: User): Mono<Void> {
+    fun deleteIssue(issueId: UUID, requesterUser: User): Mono<UUID> {
         logger.debug("deleteIssue: $issueId $requesterUser")
         return issueRepo.findById(issueId)
+            .switchIfEmpty {
+                Mono.error(ServiceException(HttpStatus.NOT_FOUND, "Issue does not exist"))
+            }
             .flatMap { checkProjectMember(it, requesterUser) }
             .flatMap {
-                issueRepo.deleteById(issueId)
+                issueRepo.deleteById(issueId).thenReturn(issueId)
             }
             .publishOn(Schedulers.boundedElastic()).map {
                 sender.convertAndSend(EventTopic.DataEvents.topic, IssueDataEvent(DataEventCode.DELETED, issueId))

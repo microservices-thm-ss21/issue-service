@@ -16,15 +16,17 @@ create table issues (
     assigned_user_id uuid NULL,
     creator_id uuid NOT NULL,
     deadline date NULL,
-    create_time timestamp NOT NULL ,
+    create_time timestamp NOT NULL,
     update_time timestamp NULL,
     status varchar(30) NOT NULL,
     CONSTRAINT fk_project
         FOREIGN KEY (project_id)
-            REFERENCES projectIds(id),
+            REFERENCES projectIds(id)
+            ON DELETE CASCADE,
     CONSTRAINT fk_user
         FOREIGN KEY (assigned_user_id)
             REFERENCES userIds(id)
+            ON DELETE SET NULL
 );
 
 

@@ -4,15 +4,13 @@ import de.thm.mni.microservices.gruppe6.issue.service.IssueDbService
 import de.thm.mni.microservices.gruppe6.lib.classes.authentication.ServiceAuthentication
 import de.thm.mni.microservices.gruppe6.lib.classes.issueService.Issue
 import de.thm.mni.microservices.gruppe6.lib.classes.issueService.IssueDTO
-import de.thm.mni.microservices.gruppe6.lib.classes.userService.User
 import de.thm.mni.microservices.gruppe6.lib.exception.ServiceException
+import de.thm.mni.microservices.gruppe6.lib.exception.coverUnexpectedException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import java.time.LocalDate
-import java.time.LocalDateTime
 import java.util.*
 
 @RestController
@@ -22,23 +20,27 @@ class IssueController(@Autowired val issueService: IssueDbService) {
 
     @GetMapping("")
     fun getAllIssues(): Flux<Issue> = issueService.getAllIssues()
+            .onErrorResume { Mono.error(coverUnexpectedException(it)) }
 
     @GetMapping("project/{projectId}")
     fun getAllProjectIssues(@PathVariable projectId: UUID): Flux<Issue> =
         issueService.getAllProjectIssues(projectId)
+                .onErrorResume { Mono.error(coverUnexpectedException(it)) }
 
     @GetMapping("user/{userId}")
     fun getAllAssignedIssues(@PathVariable userId: UUID): Flux<Issue> = issueService.getAllAssignedIssues(userId)
+            .onErrorResume { Mono.error(coverUnexpectedException(it)) }
 
     @GetMapping("{issueId}")
     fun getIssue(@PathVariable issueId: UUID): Mono<Issue> =
-        issueService.getIssue(issueId).switchIfEmpty(Mono.error(ServiceException(HttpStatus.NOT_FOUND)))
+        issueService.getIssue(issueId)
+                .onErrorResume { Mono.error(coverUnexpectedException(it)) }
 
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
     fun createIssue(@RequestBody issueDTO: IssueDTO, auth: ServiceAuthentication): Mono<Issue> =
         issueService.createIssue(issueDTO, auth.user!!.id!!)
-            .onErrorResume { Mono.error(ServiceException(HttpStatus.CONFLICT, cause = it.cause)) }
+                .onErrorResume { Mono.error(coverUnexpectedException(it)) }
 
     @PutMapping("{issueId}")
     fun updateIssue(
@@ -46,10 +48,12 @@ class IssueController(@Autowired val issueService: IssueDbService) {
         @RequestBody issueDTO: IssueDTO,
         auth: ServiceAuthentication
     ): Mono<Issue> = issueService.updateIssue(issueId, issueDTO, auth.user!!)
-        .onErrorResume { Mono.error(ServiceException(HttpStatus.CONFLICT,cause = it.cause)) }
+            .onErrorResume { Mono.error(coverUnexpectedException(it)) }
 
     @DeleteMapping("{issueId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun deleteIssue(@PathVariable issueId: UUID, auth: ServiceAuthentication): Mono<Void> =
         issueService.deleteIssue(issueId, auth.user!!)
+                .onErrorResume { Mono.error(coverUnexpectedException(it)) }
+                .flatMap { Mono.empty() }
 }
