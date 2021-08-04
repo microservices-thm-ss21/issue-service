@@ -122,6 +122,7 @@ class IssueDbService(
      * @param issueId
      * @param issueDTO holding all info to update the issue
      * @param requesterUser
+     * @throws ServiceException when permissions are not fulfilled or project or user do not exist.
      * @return updated issue
      */
     fun updateIssue(issueId: UUID, issueDTO: IssueDTO, requesterUser: User): Mono<Issue> {
@@ -145,6 +146,9 @@ class IssueDbService(
             }
             .flatMap {
                 issueRepo.findById(issueId)
+            }
+            .switchIfEmpty {
+                Mono.error(ServiceException(HttpStatus.NOT_FOUND, "issue does not exist"))
             }
             .flatMap { issue ->
                 checkProjectMember(issue, requesterUser)

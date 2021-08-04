@@ -10,6 +10,8 @@ paths:
     get:
       description: |
         Returns all Issues saved within the issue service
+      security:
+        - basicAuth: [ ]
       responses:
         '200':
           description: List of Issues
@@ -17,6 +19,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ArrayOfIssues'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
         default:
           description: unexpected error
           content:
@@ -26,6 +30,8 @@ paths:
 
     post:
       description: Creates a new Issue
+      security:
+        - basicAuth: [ ]
       requestBody:
         description: issueDTO
         required: true
@@ -39,9 +45,15 @@ paths:
           content:
             application/json:
               schema:
-                type: string
-        '409':
-          description: Issue could not be created
+                $ref: '#/components/schemas/Issue'
+        '400':
+          description: IssueDTO was not complete
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          description: Requester hat not the necessary permissions
+        '404':
+          description: Creator or assigned user do not exist
         default:
           description: unexpected error
           content:
@@ -52,6 +64,8 @@ paths:
   /project/{projectId}:
     get:
       description: Get all Issues of the given project
+      security:
+        - basicAuth: [ ]
       parameters:
         - name: projectId
           in: path
@@ -68,6 +82,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ArrayOfIssues'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
         default:
           description: unexpected error
           content:
@@ -78,6 +94,8 @@ paths:
   /{issueId}:
     get:
       description: Find issue by id
+      security:
+        - basicAuth: [ ]
       parameters:
         - name: issueId
           in: path
@@ -94,6 +112,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Issue'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
         '404':
           description: Issue not found
         default:
@@ -105,6 +125,8 @@ paths:
 
     put:
       description: Updates existing Issue
+      security:
+        - basicAuth: [ ]
       parameters:
         - name: issueId
           in: path
@@ -128,8 +150,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Issue'
-        '409':
-          description: Issue could not be updated
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          description: Requester hat not the necessary permissions
+        '404':
+          description: Issue Project or assined user do not exist
         default:
           description: unexpected error
           content:
@@ -139,6 +165,8 @@ paths:
 
     delete:
       description: Deletes existing Issue
+      security:
+        - basicAuth: [ ]
       parameters:
         - name: issueId
           in: path
@@ -150,11 +178,11 @@ paths:
             example: "a3974d24-5735-410c-b109-ad262755d4d3"
       responses:
         '204':
-          description: Issue
-          content:
-            application/json:
-              schema:
-                type: string
+          description: Deleting was successfull.
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          description: Requester hat not the necessary permissions
         default:
           description: unexpected error
           content:
@@ -163,18 +191,32 @@ paths:
                 type: string
 
 components:
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+  responses:
+    UnauthorizedError:
+      description: Authentication information is missing or invalid
+      headers:
+        WWW_Authenticate:
+          schema:
+            type: string
   schemas:
     Issue:
       type: object
       properties:
         id:
           type: string
+          format: uuid
         projectId:
           type: string
+          format: uuid
         message:
           type: string
         assignedUserId:
           type: string
+          format: uuid
           nullable: true
         deadline:
           type: string
