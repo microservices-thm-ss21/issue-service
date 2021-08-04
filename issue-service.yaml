@@ -10,8 +10,6 @@ paths:
     get:
       description: |
         Returns all Issues saved within the issue service
-      security:
-        - basicAuth: [ ]
       responses:
         '200':
           description: List of Issues
@@ -30,8 +28,6 @@ paths:
 
     post:
       description: Creates a new Issue
-      security:
-        - basicAuth: [ ]
       requestBody:
         description: issueDTO
         required: true
@@ -64,8 +60,6 @@ paths:
   /project/{projectId}:
     get:
       description: Get all Issues of the given project
-      security:
-        - basicAuth: [ ]
       parameters:
         - name: projectId
           in: path
@@ -94,8 +88,6 @@ paths:
   /{issueId}:
     get:
       description: Find issue by id
-      security:
-        - basicAuth: [ ]
       parameters:
         - name: issueId
           in: path
@@ -125,8 +117,6 @@ paths:
 
     put:
       description: Updates existing Issue
-      security:
-        - basicAuth: [ ]
       parameters:
         - name: issueId
           in: path
@@ -165,8 +155,6 @@ paths:
 
     delete:
       description: Deletes existing Issue
-      security:
-        - basicAuth: [ ]
       parameters:
         - name: issueId
           in: path
@@ -190,18 +178,18 @@ paths:
               schema:
                 type: string
 
+security:
+  - bearerAuth: []
+
 components:
   securitySchemes:
-    basicAuth:
+    bearerAuth:
       type: http
-      scheme: basic
+      scheme: bearer
+      bearerFormat: JWT
   responses:
     UnauthorizedError:
       description: Authentication information is missing or invalid
-      headers:
-        WWW_Authenticate:
-          schema:
-            type: string
   schemas:
     Issue:
       type: object
