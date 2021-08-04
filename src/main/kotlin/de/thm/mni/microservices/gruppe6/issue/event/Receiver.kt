@@ -6,10 +6,8 @@ import de.thm.mni.microservices.gruppe6.lib.event.DomainEvent
 import de.thm.mni.microservices.gruppe6.lib.event.EventTopic
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.jms.annotation.JmsListener
 import org.springframework.jms.annotation.JmsListeners
-import org.springframework.jms.support.destination.DynamicDestinationResolver
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
 import javax.jms.Message

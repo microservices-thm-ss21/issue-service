@@ -1,7 +1,6 @@
 package de.thm.mni.microservices.gruppe6.issue.security
 
 import de.thm.mni.microservices.gruppe6.lib.classes.authentication.ServiceAuthentication
-import org.slf4j.LoggerFactory
 import org.springframework.http.HttpHeaders
 import org.springframework.security.authentication.ReactiveAuthenticationManager
 import org.springframework.security.core.Authentication
@@ -35,7 +34,7 @@ class JwtFilter(private val jwtService: JwtService) {
      * Nested class converting a ServerWebExchange to an Authentication object
      * containing the JWT extracted from the request as credentials.
      */
-    class JwtAuthenticationConverter: ServerAuthenticationConverter {
+    class JwtAuthenticationConverter : ServerAuthenticationConverter {
         private val bearer = "Bearer "
         private val matchBearerLength = Predicate { authValue: String -> authValue.length > bearer.length }
         private fun isolateBearerValue(authValue: String) = Mono.just(

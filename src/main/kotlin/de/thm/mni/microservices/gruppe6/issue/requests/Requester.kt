@@ -7,7 +7,6 @@ import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.ClientResponse
 import org.springframework.web.reactive.function.client.WebClient
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.nio.charset.StandardCharsets
 
@@ -15,10 +14,15 @@ import java.nio.charset.StandardCharsets
 class Requester {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
+    /**
+     * Helper function to build a ResponseSpec. Can be used to send a request.
+     * @param baseURI
+     * @param routeURI
+     */
     fun getResponseSpec(baseURI: String, routeURI: String): WebClient.RequestHeadersSpec<*> {
         val client = WebClient.create(baseURI)
         val uriSpec: WebClient.RequestHeadersUriSpec<*> = client.get()
-        val headerSpec: WebClient.RequestHeadersSpec<*> = uriSpec.uri(routeURI) //uriSpec.uri("api/projects/user/$userId")
+        val headerSpec: WebClient.RequestHeadersSpec<*> = uriSpec.uri(routeURI)
         return headerSpec.header(
             HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE
         )
@@ -26,20 +30,13 @@ class Requester {
             .acceptCharset(StandardCharsets.UTF_8)
     }
 
-    fun <T> forwardGetRequestFlux(baseURI: String, routeURI: String, returnClass: Class<T>): Flux<T> {
-        return getResponseSpec(baseURI, routeURI).exchangeToFlux { response: ClientResponse ->
-            logger.debug("$response")
-            logger.debug("${response.statusCode()}")
-            if (response.statusCode() == HttpStatus.OK) {
-                logger.debug("Everything ok")
-                response.bodyToFlux(returnClass)
-            } else {
-                logger.debug("Result Flux Empty")
-                Flux.empty()
-            }
-        }
-    }
-
+    /**
+     * Sends a request and parses the return body
+     * @param baseURI
+     * @param routeURI
+     * @param returnClass Class of the object that will be the answer to this call
+     * @return Object that is inside the response body
+     */
     fun <T> forwardGetRequestMono(baseURI: String, routeURI: String, returnClass: Class<T>): Mono<T> {
         return getResponseSpec(baseURI, routeURI).exchangeToMono { response: ClientResponse ->
             logger.debug(response.toString())

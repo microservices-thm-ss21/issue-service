@@ -6,8 +6,8 @@ import org.springframework.data.repository.reactive.ReactiveCrudRepository
 import reactor.core.publisher.Mono
 import java.util.*
 
-interface UserRepository: ReactiveCrudRepository<UserId, UUID> {
+interface UserRepository : ReactiveCrudRepository<UserId, UUID> {
 
     @Query("INSERT INTO userIds VALUES (:userId)")
-    fun saveUser(userId: UUID) : Mono<Void>
+    fun saveUser(userId: UUID): Mono<Void>
 }

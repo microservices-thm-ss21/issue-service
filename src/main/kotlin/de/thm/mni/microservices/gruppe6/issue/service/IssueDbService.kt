@@ -22,6 +22,9 @@ import reactor.kotlin.core.publisher.switchIfEmpty
 import java.time.LocalDateTime
 import java.util.*
 
+/**
+ * Implements the functionality used to process issues
+ */
 @Component
 class IssueDbService(
     @Autowired val issueRepo: IssueRepository,
@@ -33,11 +36,19 @@ class IssueDbService(
 
     private val logger = LoggerFactory.getLogger(this::class.java)
 
+    /**
+     * Returns all issues
+     * @return flux of issues
+     */
     fun getAllIssues(): Flux<Issue> {
         logger.debug("getAllIssues")
         return issueRepo.findAll()
     }
 
+    /**
+     * Get all Issues from DB of a Project
+     * @param projectId Project Id
+     */
     fun getAllProjectIssues(projectId: UUID): Flux<Issue> {
         logger.debug("getAllProjectIssues $projectId")
         return issueRepo.getIssuesByProjectId(projectId)
@@ -48,11 +59,22 @@ class IssueDbService(
         return issueRepo.getIssuesByAssignedUserId(userId)
     }
 
+    /**
+     * Get Issue from DB by Id
+     * @param issueId Issue Id
+     */
     fun getIssue(issueId: UUID): Mono<Issue> {
         logger.debug("getIssue $issueId")
         return issueRepo.findById(issueId).switchIfEmpty { Mono.error(ServiceException(HttpStatus.NOT_FOUND)) }
     }
 
+
+    /**
+     * Creates an issue, stores it inside database and sends all necessary events.
+     * @param issueDTO holding all info to create the issue
+     * @param requesterId
+     * @return created issue
+     */
     fun createIssue(issueDTO: IssueDTO, requesterId: UUID): Mono<Issue> {
         logger.debug("updateIssue: $issueDTO $issueDTO $requesterId")
         return userRepository.existsById(requesterId)
@@ -62,7 +84,12 @@ class IssueDbService(
             }
             .filter { issueDTO.message != null && issueDTO.projectId != null }
             .switchIfEmpty {
-                Mono.error(ServiceException(HttpStatus.BAD_REQUEST, "issue message and project id necessary to create an issue"))
+                Mono.error(
+                    ServiceException(
+                        HttpStatus.BAD_REQUEST,
+                        "issue message and project id necessary to create an issue"
+                    )
+                )
             }
             .flatMap {
                 if (issueDTO.assignedUserId != null) userRepository.existsById(issueDTO.assignedUserId!!)
@@ -90,14 +117,21 @@ class IssueDbService(
             }
     }
 
+    /**
+     * Updates an issue, checks if user as permissions to do it and sends all necessary events.
+     * @param issueId
+     * @param issueDTO holding all info to update the issue
+     * @param requesterUser
+     * @return updated issue
+     */
     fun updateIssue(issueId: UUID, issueDTO: IssueDTO, requesterUser: User): Mono<Issue> {
         logger.debug("updateIssue: $issueId $issueDTO $requesterUser")
         return Mono.just(issueDTO.assignedUserId != null).flatMap {
-                if (it)
-                    userRepository.existsById(issueDTO.assignedUserId!!)
-                else
-                    Mono.just(true)
-            }
+            if (it)
+                userRepository.existsById(issueDTO.assignedUserId!!)
+            else
+                Mono.just(true)
+        }
             .filter { it }
             .switchIfEmpty {
                 Mono.error(ServiceException(HttpStatus.NOT_FOUND, "assigned user does not exist"))
@@ -131,6 +165,11 @@ class IssueDbService(
             }
     }
 
+    /**
+     * Deletes an issue and sends necessary events.
+     * @param issueId Issue Id
+     * @param requesterUser
+     */
     fun deleteIssue(issueId: UUID, requesterUser: User): Mono<UUID> {
         logger.debug("deleteIssue: $issueId $requesterUser")
         return issueRepo.findById(issueId)
@@ -200,7 +239,7 @@ class IssueDbService(
             )
             this.assignedUserId = issueDTO.assignedUserId
         }
-        if(issueDTO.status != null && this.status != issueDTO.status!!.name){
+        if (issueDTO.status != null && this.status != issueDTO.status!!.name) {
             eventList.add(
                 Pair(
                     EventTopic.DomainEvents_IssueService.topic,
@@ -219,7 +258,13 @@ class IssueDbService(
         return Pair(this, eventList)
     }
 
-
+    /**
+     * Send a request to the project service and check if the user is member of the project
+     * the issue belongs to.
+     * @param issue
+     * @param user
+     * @param issue that was passed in
+     */
     fun checkProjectMember(issue: Issue, user: User): Mono<Issue> {
         logger.debug("checkProjectMember: $issue $user")
         return Mono.just(issue).flatMap {
