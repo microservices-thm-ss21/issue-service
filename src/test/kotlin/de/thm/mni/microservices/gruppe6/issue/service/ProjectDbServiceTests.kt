@@ -1,15 +1,11 @@
 package de.thm.mni.microservices.gruppe6.issue.service
 
-import de.thm.mni.microservices.gruppe6.lib.classes.projectService.ProjectId
 import de.thm.mni.microservices.gruppe6.issue.model.persistence.ProjectRepository
-import de.thm.mni.microservices.gruppe6.lib.event.DataEvent.*
-import de.thm.mni.microservices.gruppe6.lib.event.*
+import de.thm.mni.microservices.gruppe6.lib.classes.projectService.ProjectId
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.ArgumentMatchers.any
 import org.mockito.BDDMockito.given
 import org.mockito.Mock
-import org.mockito.Mockito
 import org.mockito.junit.jupiter.MockitoExtension
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -24,68 +20,25 @@ class ProjectDbServiceTests(
     private val service = ProjectDbService(repository)
 
 
-    private fun getTestProject(id: UUID) : ProjectId {
+    private fun getTestProject(id: UUID): ProjectId {
         return ProjectId(
             id
         )
     }
 
-    private fun getTestEvent(id: UUID, code: DataEventCode): ProjectDataEvent {
-        return ProjectDataEvent(code,id)
-    }
-
-    private fun mockRepositorySave(id: UUID) {
-        Mockito.`when`(repository.save(any())).then {
-            val hopefullyProject = it.arguments.first()
-            if (hopefullyProject is ProjectId) {
-                hopefullyProject.id = id
-            }
-            Mono.just(hopefullyProject)
-        }
-    }
 
     @Test
-    fun testShouldHave(){
+    fun testShouldHave() {
         val id = UUID.randomUUID()
         given(repository.existsById(id)).willReturn(Mono.just(true))
 
         StepVerifier
             .create(service.hasProject(id))
-            .consumeNextWith{
-                    i ->
+            .consumeNextWith { i ->
                 assert(i)
             }
             .verifyComplete()
     }
-
-    /*@Test
-    fun testShouldCreate() {
-        val id = UUID.randomUUID()
-        val testProject = getTestProject(id)
-        val testEvent = getTestEvent(id, CREATED)
-        mockRepositorySave(id)
-
-        Mockito.verify(service.receiveUpdate(any()))
-
-        StepVerifier
-            .create(service.receiveUpdate(testEvent))
-            .consumeNextWith{
-                i ->
-                    assert(i.projectId == testProject.projectId)
-                    Mockito.verify(repository).save(testProject)
-            }
-            .verifyComplete()
-    }*/
-
-    /*@Test
-    fun testShouldDelete() {
-        val id = UUID.randomUUID()
-        val testProject = getTestProject(id)
-
-        given(repository.findById(id)).willReturn(Mono.just(testProject))
-        given(repository.deleteById(testProject.projectId)).willReturn(Mono.empty())
-        assert(service.deleteProject(id) is Mono<Void>) // Currently always true but when we implement exceptions this test will be necessary
-    }*/
 
     @Test
     fun testShouldGetAll() {

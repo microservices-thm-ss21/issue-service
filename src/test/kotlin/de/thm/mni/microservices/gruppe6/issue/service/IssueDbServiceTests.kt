@@ -2,173 +2,216 @@ package de.thm.mni.microservices.gruppe6.issue.service
 
 
 import de.thm.mni.microservices.gruppe6.issue.model.persistence.IssueRepository
+import de.thm.mni.microservices.gruppe6.issue.model.persistence.ProjectRepository
+import de.thm.mni.microservices.gruppe6.issue.model.persistence.UserRepository
+import de.thm.mni.microservices.gruppe6.issue.requests.Requester
+import de.thm.mni.microservices.gruppe6.lib.classes.issueService.Issue
+import de.thm.mni.microservices.gruppe6.lib.classes.issueService.IssueDTO
+import de.thm.mni.microservices.gruppe6.lib.classes.userService.GlobalRole
+import de.thm.mni.microservices.gruppe6.lib.classes.userService.User
+import de.thm.mni.microservices.gruppe6.lib.exception.ServiceException
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.ArgumentMatchers.any
 import org.mockito.BDDMockito.given
 import org.mockito.Mock
-import org.mockito.Mockito
+import org.mockito.Mockito.*
 import org.mockito.junit.jupiter.MockitoExtension
-import org.springframework.context.annotation.Bean
+import org.springframework.http.HttpStatus
 import org.springframework.jms.core.JmsTemplate
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import reactor.test.StepVerifier
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
-import javax.jms.Message
 
 @ExtendWith(MockitoExtension::class)
 class IssueDbServiceTests(
-    @Mock private val repository: IssueRepository,
-    @Mock private val jmsTemplate: JmsTemplate,
+    @Mock private val issueRepo: IssueRepository,
+    @Mock private val sender: JmsTemplate,
+    @Mock val requester: Requester,
+    @Mock val userRepo: UserRepository,
+    @Mock val projectRepo: ProjectRepository
 
-    ) {
-    /*
-    private val service = IssueDbService(repository, jmsTemplate)
+) {
 
-    @Bean
-    fun jmsTemplate(): JmsTemplate? {
-        return Mockito.mock(JmsTemplate::class.java)
-    }
+    private val issueDbService = IssueDbService(issueRepo, sender, requester, userRepo, projectRepo)
 
-    private fun getTestIssueDTO(
-        issue: Issue
-    ): IssueDTO {
+    private fun getTestIssueDTO(assignedUserId: UUID, projectId: UUID): IssueDTO {
         val issueDTO = IssueDTO()
-        issueDTO.message = issue.message
-        issueDTO.assignedUserId = issue.assignedUserId
-        issueDTO.projectId = issue.projectId
-        issueDTO.deadline = issue.deadline
-        return issueDTO
-    }
-
-    private fun getTestIssueDTO(
-        projectId: UUID = UUID.randomUUID(),
-        message: String = "xXRausAusDenSchulden69Xx",
-        assignedUserId: UUID? = UUID.fromString("a443ffd0-f7a8-44f6-8ad3-87acd1e91042"),
-        deadline: LocalDate? = null,
-    ): IssueDTO {
-        val issueDTO = IssueDTO()
-        issueDTO.message = message
+        issueDTO.message = "Message"
         issueDTO.assignedUserId = assignedUserId
         issueDTO.projectId = projectId
-        issueDTO.deadline = deadline
         return issueDTO
     }
 
     private fun getTestIssue(
-        issueDTO: IssueDTO
+        issueDTO: IssueDTO,
+        creatorId: UUID
     ): Issue {
-        return Issue(issueDTO).also { it.id = UUID.randomUUID() }
+        return Issue(issueDTO, creatorId).also { it.id = UUID.randomUUID() }
     }
 
-    private fun getTestIssue(
-        id: UUID = UUID.randomUUID(),
-        projectId: UUID = UUID.randomUUID(),
-        message: String = "xXRausAusDenSchulden69Xx",
-        assignedUserId: UUID? = UUID.fromString("a443ffd0-f7a8-44f6-8ad3-87acd1e91042"),
-        deadline: LocalDate? = null,
-        createTime: LocalDateTime = LocalDateTime.now(),
-        updateTime: LocalDateTime? = null
-    ): Issue {
-        return Issue(
-            id,
-            projectId,
-            message,
-            assignedUserId,
-            deadline,
-            createTime,
-            updateTime
+    private fun createTestUser(): User {
+        return User(
+            UUID.randomUUID(), "username", "Password", "name", "lastName", "email",
+            LocalDate.now(), LocalDateTime.now(), GlobalRole.ADMIN.name, LocalDateTime.now()
         )
     }
 
-    private fun mockRepositorySave(issue: Issue) {
-        Mockito.`when`(repository.save(any(Issue::class.java))).thenReturn(Mono.just(issue))
-    }
+    @Test
+    fun testGetIssue() {
+        val userId = UUID.randomUUID()
+        val projectId = UUID.randomUUID()
+        val issueDTO = getTestIssueDTO(userId, projectId)
+        val issue = getTestIssue(issueDTO, userId)
+        given(issueRepo.findById(issue.id!!)).willReturn(Mono.just(issue))
 
-    private fun mockJmsTemplate() {
-        Mockito.`when`(jmsTemplate.convertAndSend(any(Message::class.java))).thenReturn(Unit)
+        val returnedIssue = issueDbService.getIssue(issue.id!!).block()
+        assertThat(returnedIssue).isNotNull
+        assertThat(returnedIssue).isEqualTo(issue)
     }
 
     @Test
-    fun testShouldGetByID() {
-        val id = UUID.randomUUID()
-        val testIssue = getTestIssue(id)
-        given(repository.findById(id)).willReturn(Mono.just(testIssue))
+    fun testCreateIssue() {
+        val userId = UUID.randomUUID()
+        val projectId = UUID.randomUUID()
+        val issueDTO = getTestIssueDTO(userId, projectId)
+        val issue = getTestIssue(issueDTO, userId)
 
-        StepVerifier
-            .create(service.getIssue(id))
-            .consumeNextWith { i ->
-                assert(i.equals(testIssue))
-            }
-            .verifyComplete()
-    }
+        given(issueRepo.existsById(issue.id!!)).willReturn(Mono.just(true))
+        given(userRepo.existsById(userId)).willReturn(Mono.just(true))
+        given(projectRepo.existsById(projectId)).willReturn(Mono.just(true))
+        given(issueRepo.save(any())).willReturn(Mono.just(issue))
 
-    @Test
-    fun testShouldCreate() {
-        val testIssueDTO = getTestIssueDTO()
-        val testIssue = getTestIssue(testIssueDTO)
-
-        mockRepositorySave(testIssue)
-
-        StepVerifier
-            .create(service.createIssue(testIssueDTO))
-            .consumeNextWith { i ->
-                assert(i == testIssue)
-                Mockito.verify(repository).save(any())
-            }
-            .verifyComplete()
-    }
-
-    @Test
-    fun testShouldDelete() {
-        val id = UUID.randomUUID()
-        val testIssue = getTestIssue(id)
-
-        given(repository.findById(id)).willReturn(Mono.just(testIssue))
-        given(repository.deleteById(testIssue.id!!)).willReturn(Mono.empty())
-
-
-        assert(service.deleteIssue(id) is Mono<Void>) // Currently always true but when we implement exceptions this test will be necessary
-    }
-
-    @Test
-    fun testShouldUpdate() {
-        val issueId = UUID.randomUUID()
-        val testIssueOld = getTestIssue(issueId)
-        val testIssueNew = testIssueOld.copy(message = "This is a new message")
-        val testIssueDTO = getTestIssueDTO(testIssueNew)
-
-
-        given(repository.findById(issueId)).willReturn(Mono.just(testIssueOld))
-
-        mockRepositorySave(testIssueNew)
-
-        StepVerifier
-            .create(service.createIssue(testIssueDTO))
-            .consumeNextWith { i ->
-                run {
-                    assert(i == testIssueNew)
-                    assert(i != testIssueOld)
-                }
-                Mockito.verify(repository).save(any())
-            }
-            .verifyComplete()
+        val returnedIssue = issueDbService.createIssue(issueDTO, userId).block()
+        assertThat(returnedIssue).isNotNull
+        assertThat(returnedIssue).isEqualTo(issue)
 
     }
 
     @Test
-    fun testShouldGetAllProjectIssues() {
-        val prjId = UUID.randomUUID()
+    fun testUpdateIssue() {
+        val user = createTestUser()
+        user.id = UUID.randomUUID()
+        val projectId = UUID.randomUUID()
+        val issueDTO = getTestIssueDTO(user.id!!, projectId)
+        val issue = getTestIssue(issueDTO, user.id!!)
+        val newIssueDTO = issueDTO.copy()
+        newIssueDTO.message = "new"
+        val newIssue = getTestIssue(newIssueDTO, user.id!!)
 
-        val issues =
-            listOf(getTestIssue(projectId = prjId), getTestIssue(projectId = prjId), getTestIssue(projectId = prjId))
-        given(repository.getIssuesByProjectId(prjId)).willReturn(Flux.fromIterable(issues))
+        val service = spy(issueDbService)
 
-        val result = service.getAllProjectIssues(prjId).collectList().block()
-        assert(result == issues)
+        given(userRepo.existsById(user.id!!)).willReturn(Mono.just(true))
+        given(issueRepo.findById(issue.id!!)).willReturn(Mono.just(issue))
+        given(userRepo.existsById(user.id!!)).willReturn(Mono.just(true))
+        given(projectRepo.existsById(projectId)).willReturn(Mono.just(true))
+        given(issueRepo.save(any())).willReturn(Mono.just(newIssue))
+        doReturn(Mono.just(issue)).`when`(service).checkProjectMember(issue, user)
+
+        val createdIssue = service.updateIssue(issue.id!!, issueDTO, user).block()
+
+        assertThat(createdIssue).isNotNull
+        assertThat(createdIssue!!.message == newIssue.message)
+        assertThat(createdIssue.id == newIssue.id)
+        assertThat(createdIssue.assignedUserId == newIssue.assignedUserId)
     }
-*/
+
+    @Test
+    fun testDeleteIssue() {
+        val service = spy(issueDbService)
+        val user = createTestUser()
+        user.id = UUID.randomUUID()
+        val projectId = UUID.randomUUID()
+        val issueDTO = getTestIssueDTO(user.id!!, projectId)
+        val issue = getTestIssue(issueDTO, user.id!!)
+        given(issueRepo.findById(issue.id!!)).willReturn(Mono.just(issue))
+        given(issueRepo.deleteById(issue.id!!)).willReturn(Mono.empty())
+        doReturn(Mono.just(issue)).`when`(service).checkProjectMember(issue, user)
+
+        service.deleteIssue(issue.id!!, user).block()
+
+        verify(issueRepo, times(1)).findById(issue.id!!)
+        verify(issueRepo, times(1)).deleteById(issue.id!!)
+        verify(service, times(1)).checkProjectMember(issue, user)
+    }
+
+    @Test
+    fun testCheckProjectMember1() {
+        val user = createTestUser()
+        user.id = UUID.randomUUID()
+        val projectId = UUID.randomUUID()
+        val issueDTO = getTestIssueDTO(user.id!!, projectId)
+        val issue = getTestIssue(issueDTO, user.id!!)
+        val returnedIssue = issueDbService.checkProjectMember(issue, user).block()
+        assertThat(returnedIssue).isNotNull
+        assertThat(returnedIssue!!.message == issue.message)
+        assertThat(returnedIssue.id == issue.id)
+        assertThat(returnedIssue.assignedUserId == issue.assignedUserId)
+    }
+
+    @Test
+    fun testCheckProjectMember2() {
+        val user = createTestUser()
+        user.id = UUID.randomUUID()
+        user.globalRole = GlobalRole.USER.name
+        val projectId = UUID.randomUUID()
+        val issueDTO = getTestIssueDTO(user.id!!, projectId)
+        val issue = getTestIssue(issueDTO, UUID.randomUUID())
+        given(
+            requester.forwardGetRequestMono(
+                "http://project-service:8082",
+                "api/projects/${issue.projectId}/members/${user.id}/exists",
+                Boolean::class.java
+            )
+        )
+            .willReturn(Mono.just(true))
+
+        val returnedIssue = issueDbService.checkProjectMember(issue, user).block()
+        assertThat(returnedIssue).isNotNull
+        assertThat(returnedIssue!!.message == issue.message)
+        assertThat(returnedIssue.id == issue.id)
+        assertThat(returnedIssue.assignedUserId == issue.assignedUserId)
+
+        verify(requester, times(1)).forwardGetRequestMono(
+            "http://project-service:8082",
+            "api/projects/${issue.projectId}/members/${user.id}/exists",
+            Boolean::class.java
+        )
+    }
+
+    @Test
+    fun testCheckProjectMember3() {
+        val user = createTestUser()
+        user.id = UUID.randomUUID()
+        user.globalRole = GlobalRole.USER.name
+        val projectId = UUID.randomUUID()
+        val issueDTO = getTestIssueDTO(user.id!!, projectId)
+        val issue = getTestIssue(issueDTO, UUID.randomUUID())
+        given(
+            requester.forwardGetRequestMono(
+                "http://project-service:8082",
+                "api/projects/${issue.projectId}/members/${user.id}/exists",
+                Boolean::class.java
+            )
+        )
+            .willReturn(Mono.just(false))
+        var error: Throwable? = null
+        try {
+            val returnedIssue = issueDbService.checkProjectMember(issue, user).block()
+        } catch (e: Throwable) {
+            error = e
+        }
+
+        assertThat(error != null)
+        assertThat(error is ServiceException)
+        assertThat((error as ServiceException).status.value() == HttpStatus.FORBIDDEN.value())
+
+        verify(requester, times(1)).forwardGetRequestMono(
+            "http://project-service:8082",
+            "api/projects/${issue.projectId}/members/${user.id}/exists",
+            Boolean::class.java
+        )
+    }
 }
