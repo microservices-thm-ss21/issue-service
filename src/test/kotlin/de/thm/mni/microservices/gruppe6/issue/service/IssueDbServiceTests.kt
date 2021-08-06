@@ -201,7 +201,7 @@ class IssueDbServiceTests(
             .willReturn(Mono.just(false))
         var error: Throwable? = null
         try {
-            val returnedIssue = issueDbService.checkProjectMember(issue, user).block()
+            issueDbService.checkProjectMember(issue, user).block()
         } catch (e: Throwable) {
             error = e
         }
