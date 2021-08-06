@@ -109,7 +109,7 @@ class IssueDbService(
             .flatMap {
                 if(issueDTO.assignedUserId != null) {
                     sendMemberRequest(issueDTO.projectId!!, issueDTO.assignedUserId!!)
-                }else {
+                } else {
                     Mono.just(true)
                 }
             }
@@ -211,7 +211,7 @@ class IssueDbService(
         val eventList = ArrayList<Pair<String, DomainEvent>>()
 
         if (issueDTO.projectId != null && this.projectId != issueDTO.projectId)
-            throw IllegalArgumentException("You may not update the project ID of an existing Issue")
+            throw ServiceException(HttpStatus.BAD_REQUEST, "You may not update the project ID of an existing Issue")
         if (issueDTO.message != null && this.message != issueDTO.message!!) {
             eventList.add(
                 Pair(
