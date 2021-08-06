@@ -74,17 +74,19 @@ class IssueDbServiceTests(
 
     @Test
     fun testCreateIssue() {
-        val userId = UUID.randomUUID()
+        val user = createTestUser()
         val projectId = UUID.randomUUID()
-        val issueDTO = getTestIssueDTO(userId, projectId)
-        val issue = getTestIssue(issueDTO, userId)
+        val issueDTO = getTestIssueDTO(user.id!!, projectId)
+        val issue = getTestIssue(issueDTO, user.id!!)
+        val service = spy(issueDbService)
 
         given(issueRepo.existsById(issue.id!!)).willReturn(Mono.just(true))
-        given(userRepo.existsById(userId)).willReturn(Mono.just(true))
+        given(userRepo.existsById(user.id!!)).willReturn(Mono.just(true))
         given(projectRepo.existsById(projectId)).willReturn(Mono.just(true))
         given(issueRepo.save(any())).willReturn(Mono.just(issue))
+        doReturn(Mono.just(true)).`when`(service).sendMemberRequest(projectId, user.id!!)
 
-        val returnedIssue = issueDbService.createIssue(issueDTO, userId).block()
+        val returnedIssue = service.createIssue(issueDTO, user).block()
         assertThat(returnedIssue).isNotNull
         assertThat(returnedIssue).isEqualTo(issue)
 

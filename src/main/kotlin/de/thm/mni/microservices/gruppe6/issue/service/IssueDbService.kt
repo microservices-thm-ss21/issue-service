@@ -75,9 +75,9 @@ class IssueDbService(
      * @param requesterId
      * @return created issue
      */
-    fun createIssue(issueDTO: IssueDTO, requesterId: UUID): Mono<Issue> {
-        logger.debug("updateIssue: $issueDTO $issueDTO $requesterId")
-        return userRepository.existsById(requesterId)
+    fun createIssue(issueDTO: IssueDTO, requester: User): Mono<Issue> {
+        logger.debug("updateIssue: $issueDTO $issueDTO ${requester.id}")
+        return userRepository.existsById(requester.id!!)
             .filter { it }
             .switchIfEmpty {
                 Mono.error(ServiceException(HttpStatus.NOT_FOUND, "creator user does not exist"))
@@ -106,7 +106,18 @@ class IssueDbService(
             .switchIfEmpty {
                 Mono.error(ServiceException(HttpStatus.NOT_FOUND, "associated project does not exist"))
             }
-            .map { Issue(issueDTO, requesterId) }
+            .flatMap {
+                if(issueDTO.assignedUserId != null) {
+                    sendMemberRequest(issueDTO.projectId!!, issueDTO.assignedUserId!!)
+                }else {
+                    Mono.just(true)
+                }
+            }
+            .filter{it}
+            .switchIfEmpty {
+                Mono.error(ServiceException(HttpStatus.BAD_REQUEST, "assigned user is not member of project"))
+            }
+            .map { Issue(issueDTO, requester.id!!) }
             .flatMap { issueRepo.save(it) }
             .publishOn(Schedulers.boundedElastic()).map {
                 sender.convertAndSend(
@@ -128,11 +139,11 @@ class IssueDbService(
     fun updateIssue(issueId: UUID, issueDTO: IssueDTO, requesterUser: User): Mono<Issue> {
         logger.debug("updateIssue: $issueId $issueDTO $requesterUser")
         return Mono.just(issueDTO.assignedUserId != null).flatMap {
-            if (it)
-                userRepository.existsById(issueDTO.assignedUserId!!)
-            else
-                Mono.just(true)
-        }
+                if (it)
+                    userRepository.existsById(issueDTO.assignedUserId!!)
+                else
+                    Mono.just(true)
+            }
             .filter { it }
             .switchIfEmpty {
                 Mono.error(ServiceException(HttpStatus.NOT_FOUND, "assigned user does not exist"))
@@ -277,11 +288,7 @@ class IssueDbService(
                 Mono.just(issue)
             } else {
                 // Else send request to projectService and ask if user is member
-                requester.forwardGetRequestMono(
-                    "http://project-service:8082",
-                    "api/projects/${issue.projectId}/members/${user.id}/exists",
-                    Boolean::class.java
-                )   // check if is member
+                sendMemberRequest(issue.projectId, user.id!!)   // check if is member
                     .filter {
                         logger.debug("$it")
                         it
@@ -291,6 +298,14 @@ class IssueDbService(
                     }
             }
         }.switchIfEmpty(Mono.error(ServiceException(HttpStatus.FORBIDDEN, "Current has no permissions")))
+    }
+
+    fun sendMemberRequest(projectId: UUID, userId: UUID) : Mono<Boolean> {
+        return requester.forwardGetRequestMono(
+                "http://project-service:8082",
+                "api/projects/${projectId}/members/${userId}/exists",
+                Boolean::class.java
+        )
     }
 
 }

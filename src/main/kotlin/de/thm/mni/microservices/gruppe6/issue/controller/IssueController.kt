@@ -38,7 +38,7 @@ class IssueController(@Autowired val issueService: IssueDbService) {
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
     fun createIssue(@RequestBody issueDTO: IssueDTO, auth: ServiceAuthentication): Mono<Issue> =
-        issueService.createIssue(issueDTO, auth.user!!.id!!)
+        issueService.createIssue(issueDTO, auth.user!!)
                 .onErrorResume { Mono.error(coverUnexpectedException(it)) }
 
     @PutMapping("{issueId}")
