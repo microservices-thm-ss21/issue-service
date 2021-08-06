@@ -13,18 +13,22 @@ create table issues (
     id uuid primary key DEFAULT uuid_generate_v4(),
     project_id uuid NOT NULL,
     message varchar(100) NOT NULL,
-    assigned_user_id uuid NULL,
-    creator_id uuid NOT NULL,
-    deadline date NULL,
+    assigned_user_id uuid,
+    creator_id uuid,
+    deadline date,
     create_time timestamp NOT NULL,
-    update_time timestamp NULL,
+    update_time timestamp,
     status varchar(30) NOT NULL,
     CONSTRAINT fk_project
         FOREIGN KEY (project_id)
             REFERENCES projectIds(id)
             ON DELETE CASCADE,
-    CONSTRAINT fk_user
+    CONSTRAINT fk_assigned_user
         FOREIGN KEY (assigned_user_id)
+            REFERENCES userIds(id)
+            ON DELETE SET NULL,
+    CONSTRAINT fk_creator_user
+        FOREIGN KEY (creator_id)
             REFERENCES userIds(id)
             ON DELETE SET NULL
 );
