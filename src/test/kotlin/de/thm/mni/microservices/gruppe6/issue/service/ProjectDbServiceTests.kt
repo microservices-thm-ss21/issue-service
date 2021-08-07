@@ -7,6 +7,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.BDDMockito.given
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
+import org.springframework.jms.core.JmsTemplate
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.test.StepVerifier
@@ -14,10 +15,11 @@ import java.util.*
 
 @ExtendWith(MockitoExtension::class)
 class ProjectDbServiceTests(
-    @Mock private val repository: ProjectRepository
+    @Mock private val repository: ProjectRepository,
+    @Mock private val jmsTemplate: JmsTemplate
 ) {
 
-    private val service = ProjectDbService(repository)
+    private val service = ProjectDbService(repository, jmsTemplate)
 
 
     private fun getTestProject(id: UUID): ProjectId {

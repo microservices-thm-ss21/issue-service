@@ -2,6 +2,7 @@ package de.thm.mni.microservices.gruppe6.issue.event
 
 import de.thm.mni.microservices.gruppe6.issue.service.DataEventService
 import de.thm.mni.microservices.gruppe6.lib.event.DataEvent
+import de.thm.mni.microservices.gruppe6.lib.event.DeletedIssuesSagaEvent
 import de.thm.mni.microservices.gruppe6.lib.event.DomainEvent
 import de.thm.mni.microservices.gruppe6.lib.event.EventTopic
 import org.slf4j.Logger
@@ -53,6 +54,37 @@ class Receiver(private val dataEventService: DataEventService) {
                         "Received DomainEvent within IssueService with code {}",
                         payload.code
                     )
+                }
+                else -> {
+                    logger.error(
+                        "Received unknown ObjectMessage with payload type {} with id {}",
+                        payload.javaClass,
+                        message.jmsMessageID
+                    )
+                }
+            }
+        } catch (e: Exception) {
+            logger.error("Receiver-Error", e)
+        }
+    }
+
+    /**
+     * Listen to all topics specified via the JMSListener destinations, distributes the messages to the corresponding services
+     * Special listener for SagaEvents.
+     * @param message an Object message, containing a SagaEvent within its `object`-payload.
+     */
+    @JmsListeners(
+        JmsListener(destination = EventTopic.SagaEvents.topic, containerFactory = "jmsSagaEventListenerContainerFactory")
+    )
+    fun receiveSaga(message: Message) {
+        try {
+            if (message !is ObjectMessage) {
+                logger.error("Received unknown message type {} with id {}", message.jmsType, message.jmsMessageID)
+                return
+            }
+            when (val payload = message.`object`) {
+                is DeletedIssuesSagaEvent -> {
+                    logger.debug("Received DeletedIssuesSagaEvent reference {}/{} and id {}", payload.referenceType, payload.referenceValue, payload.success)
                 }
                 else -> {
                     logger.error(
