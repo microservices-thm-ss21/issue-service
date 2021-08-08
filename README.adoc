@@ -47,6 +47,13 @@ This service is interested in ProjectDeleteSagaEvents containing results of othe
 == Login
 The login to the system is realized via HTTP-Basic auth to /login. After that a JWT is issued which contains all relevant information about the user. The JWT is valid for a limited period of time. A reissue mechanism or a blacklist is not (yet) implemented.
 
+== Saga
+This service participates in the ProjectDeleteSaga described in the project-services https://git.thm.de/microservicesss21/project-service/-/blob/master/README.md[README].
+When an ProjectDeleteSagaEvent with status "BEGIN" is received, the services deletes the data from its database and stores data for compensating transactions.
+An event with status "ISSUES_DELETED" is emitted on success or failure.
+Finally an event with status "COMPLETE" is expected and either triggers the deletion of the compensating transaction data, or triggers its execution.
+
+
 == Further Reading
 Please refer to the https://git.thm.de/microservicesss21/orga/-/blob/master/README.md[README] of the Orga-Repository for more information.
 This service uses the https://git.thm.de/microservicesss21/service-lib/-/blob/master/README.md[service-lib] as a dependency.
