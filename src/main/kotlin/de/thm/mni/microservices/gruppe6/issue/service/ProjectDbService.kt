@@ -54,19 +54,6 @@ class ProjectDbService(
     private fun deleteProjectIssues(projectId: UUID) {
         projectRepo
             .deleteById(projectId)
-            .publishOn(Schedulers.boundedElastic())
-            .doOnError {
-                logger.error("Error on deleting issues!", it)
-                sender.convertAndSend(
-                    EventTopic.SagaEvents.topic,
-                    DeletedIssuesSagaEvent(SagaReferenceType.PROJECT, projectId, false)
-                )
-            }.doOnSuccess {
-                logger.debug("Deleted issues for project {}", projectId)
-                sender.convertAndSend(
-                    EventTopic.SagaEvents.topic,
-                    DeletedIssuesSagaEvent(SagaReferenceType.PROJECT, projectId, true)
-                )
-            }.subscribe()
+            .subscribe()
     }
 }

@@ -1,10 +1,8 @@
 package de.thm.mni.microservices.gruppe6.issue.event
 
+import de.thm.mni.microservices.gruppe6.issue.saga.ProjectDeleteIssuesSagaService
 import de.thm.mni.microservices.gruppe6.issue.service.DataEventService
-import de.thm.mni.microservices.gruppe6.lib.event.DataEvent
-import de.thm.mni.microservices.gruppe6.lib.event.DeletedIssuesSagaEvent
-import de.thm.mni.microservices.gruppe6.lib.event.DomainEvent
-import de.thm.mni.microservices.gruppe6.lib.event.EventTopic
+import de.thm.mni.microservices.gruppe6.lib.event.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.jms.annotation.JmsListener
@@ -19,7 +17,10 @@ import javax.jms.ObjectMessage
  * @param dataEventService A service to transfer the events into the project specific context
  */
 @Component
-class Receiver(private val dataEventService: DataEventService) {
+class Receiver(
+    private val dataEventService: DataEventService,
+    private val projectDeleteIssuesSagaService: ProjectDeleteIssuesSagaService
+) {
 
     /**
      * Logger to track errors within receiving message and debugging not implemented message types
@@ -79,12 +80,12 @@ class Receiver(private val dataEventService: DataEventService) {
     fun receiveSaga(message: Message) {
         try {
             if (message !is ObjectMessage) {
-                logger.error("Received unknown message type {} with id {}", message.jmsType, message.jmsMessageID)
                 return
             }
             when (val payload = message.`object`) {
-                is DeletedIssuesSagaEvent -> {
-                    logger.debug("Received DeletedIssuesSagaEvent reference {}/{} and id {}", payload.referenceType, payload.referenceValue, payload.success)
+                is ProjectSagaEvent -> {
+                    logger.debug("Received ProjectSagaEvent reference {}/{} and with status {} and result {}", payload.referenceType, payload.referenceValue, payload.projectSagaStatus.name, payload.success)
+                    projectDeleteIssuesSagaService.receiveSagaEvent(payload)
                 }
                 else -> {
                     logger.error(
