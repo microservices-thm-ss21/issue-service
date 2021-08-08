@@ -23,6 +23,9 @@ class ProjectDeleteIssuesSagaService(
     private val sagaChapters: HashMap<UUID, ProjectDeleteIssuesSagaChapter> = HashMap()
     private val logger = LoggerFactory.getLogger(this::class.java)
 
+    /**
+     * Receives and handles a ProjectSagaEvent.
+     */
     fun receiveSagaEvent(sagaEvent: ProjectSagaEvent) {
         if (sagaEvent.referenceType != SagaReferenceType.PROJECT ||
             (!sagaChapters.containsKey(sagaEvent.referenceValue)
@@ -37,6 +40,11 @@ class ProjectDeleteIssuesSagaService(
         }
     }
 
+    /**
+     * Function called when a COMPLETE event is received.
+     * On success: Remove the data held for compensating transaction.
+     * On failure: execute the compensating transaction.
+     */
     private fun completeSaga(sagaEvent: ProjectSagaEvent) {
         if (sagaEvent.success) {
             logger.info("Saga for project {} completed successfully!", sagaEvent.referenceValue)
@@ -46,6 +54,9 @@ class ProjectDeleteIssuesSagaService(
         }
     }
 
+    /**
+     * Function deleting the issues associated with the given projectId.
+     */
     private fun deleteIssues(projectId: UUID) {
         issueRepository
             .getIssuesByProjectId(projectId)
@@ -71,6 +82,9 @@ class ProjectDeleteIssuesSagaService(
             }.subscribe()
     }
 
+    /**
+     * Executes the compensating transaction.
+     */
     fun rollbackIssueDeletion(projectId: UUID) {
         logger.error("Rollback saga for project {}", projectId)
         val sagaChapter = sagaChapters[projectId]!!
