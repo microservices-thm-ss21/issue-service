@@ -55,7 +55,7 @@ class IssueDbServiceTests(
     private fun createTestUser(): User {
         return User(
             UUID.randomUUID(), "username", "Password", "name", "lastName", "email",
-            LocalDate.now(), LocalDateTime.now(), GlobalRole.ADMIN.name, LocalDateTime.now()
+            LocalDate.now(), LocalDateTime.now(), GlobalRole.ADMIN.name
         )
     }
 
