@@ -1,7 +1,8 @@
-package de.thm.mni.microservices.gruppe6.issue.saga
+package de.thm.mni.microservices.gruppe6.issue.saga.service
 
 import de.thm.mni.microservices.gruppe6.issue.model.persistence.IssueRepository
 import de.thm.mni.microservices.gruppe6.issue.model.persistence.ProjectRepository
+import de.thm.mni.microservices.gruppe6.issue.saga.model.ProjectDeleteIssuesSagaChapter
 import de.thm.mni.microservices.gruppe6.lib.classes.projectService.ProjectId
 import de.thm.mni.microservices.gruppe6.lib.event.EventTopic
 import de.thm.mni.microservices.gruppe6.lib.event.ProjectSagaEvent

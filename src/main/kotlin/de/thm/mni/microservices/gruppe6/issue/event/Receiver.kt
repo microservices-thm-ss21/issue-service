@@ -1,6 +1,6 @@
 package de.thm.mni.microservices.gruppe6.issue.event
 
-import de.thm.mni.microservices.gruppe6.issue.saga.ProjectDeleteIssuesSagaService
+import de.thm.mni.microservices.gruppe6.issue.saga.service.ProjectDeleteIssuesSagaService
 import de.thm.mni.microservices.gruppe6.issue.service.DataEventService
 import de.thm.mni.microservices.gruppe6.lib.event.*
 import org.slf4j.Logger
