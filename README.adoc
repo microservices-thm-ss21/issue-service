@@ -1,0 +1,52 @@
+= Issue Service
+
+Service responsible for managing issues.
+
+== Structure
+
+* A user is required to be logged in to send any requests to the project-service.
+* Any user can create an issue for any existing project.
+* Only member of a project can be assigned to an issue
+* Any member of a project can update, delete and change status an issue.
+* There are four states of an Issue: OPEN, CLOSE, IN_PROGRESS, TO_BE_REVIEWED
+
+== Tech-Stack
+The issue service is based on the Spring Framework with Webflux and Netty as its HTTP-server stack and ActiveMQ connections as message broker. The service is connected to dedicated PostgreSQL database, where data is persisted.
+
+== Database / PostgreSQL
+The database holds all information of registered issues.
+In addition, the projectId's and userId's are persisted to reduce the verification calls within the services.
+
+== HTTP API
+The API is documented as https://git.thm.de/microservicesss21/orga/-/tree/master/doc/apis[OpenAPI Specification].
+
+To test the API please use the https://git.thm.de/microservicesss21/orga/-/blob/master/doc/Micro-Services.project_service.postman_collection.json[Postman collection].
+
+== Message-Broker / ActiveMQ
+The service sends events when:
+
+1. microservices.dataEvents: +
+- Issue: Created, Updated or deleted
+
+2. microservices.domainEvents: +
+   Extended events with additional information when:
+* The message of an issue got changed
+* The deadline of an issue got changed
+* The assigned user of an issue changed
+* The status of an issue changed
+
+The project service is listening to two ActiveMQ topics:
+
+1. microservices.dataEvents: +
+This service is interested in creation and deletion events for users and projects within the system to update its local table with user ids.
+All other events are ignored.
+
+2. microservices.sagaEvents: +
+This service is interested in ProjectDeleteSagaEvents containing results of other services involved in saga transactions orchestrated by this service.
+
+== Login
+The login to the system is realized via HTTP-Basic auth to /login. After that a JWT is issued which contains all relevant information about the user. The JWT is valid for a limited period of time. A reissue mechanism or a blacklist is not (yet) implemented.
+
+== Further Reading
+Please refer to the https://git.thm.de/microservicesss21/orga/-/blob/master/README.md[README] of the Orga-Repository for more information.
+This service uses the https://git.thm.de/microservicesss21/service-lib/-/blob/master/README.md[service-lib] as a dependency.
